@@ -32,7 +32,6 @@
       padding: 8px 12px;
       margin-bottom: 8px;
       background: #f4f4f4;
-      position: relative;
     }
     .bentrok {
       border-left-color: red;
@@ -68,17 +67,42 @@
   </form>
 
   <h2>Daftar Kegiatan</h2>
-  <div id="hasilJadwal"></div>
+  <div id="hasilJadwal"><p>Memuat data...</p></div>
+
+  <!-- SDK Firebase (versi "compat" biar gampang dipakai tanpa build tools) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
   <script>
+    // 1. Konfigurasi & inisialisasi Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDrnuoOBpdtFtp1Vy52pp28Web-NK-wA7M",
+      authDomain: "jadwal-otomatis-954b7.firebaseapp.com",
+      projectId: "jadwal-otomatis-954b7",
+      storageBucket: "jadwal-otomatis-954b7.firebasestorage.app",
+      messagingSenderId: "325470252976",
+      appId: "1:325470252976:web:d442365eba2b6e354b7075"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const kegiatanRef = db.collection('kegiatan');
+
     const form = document.getElementById('formKegiatan');
     const hasilDiv = document.getElementById('hasilJadwal');
     const tombolSubmit = document.getElementById('tombolSubmit');
 
-    let daftarKegiatan = JSON.parse(localStorage.getItem('kegiatan')) || [];
+    let daftarKegiatan = []; // sekarang cuma "cache" sementara, sumber aslinya di Firestore
+    let sedangEdit = null;   // id dokumen Firestore yang lagi diedit
 
-    // Menyimpan id kegiatan yang lagi diedit (null = mode tambah baru)
-    let sedangEdit = null;
+    // 2. "Dengerin" perubahan data di Firestore secara real-time
+    kegiatanRef.onSnapshot((snapshot) => {
+      daftarKegiatan = snapshot.docs.map(doc => ({
+        id: doc.id,       // id otomatis dari Firestore
+        ...doc.data()     // isi field nama, tanggal, jamMulai, jamSelesai
+      }));
+      tampilkanJadwal();
+    });
 
     form.addEventListener('submit', function(e) {
       e.preventDefault();
@@ -99,30 +123,25 @@
       };
 
       if (sedangEdit === null) {
-        // MODE TAMBAH: kasih id unik pakai waktu sekarang
-        dataForm.id = Date.now();
-        daftarKegiatan.push(dataForm);
+        // MODE TAMBAH: kirim data baru ke Firestore
+        kegiatanRef.add(dataForm);
       } else {
-        // MODE EDIT: cari kegiatan yang id-nya cocok, timpa datanya
-        const index = daftarKegiatan.findIndex(k => k.id === sedangEdit);
-        dataForm.id = sedangEdit; // id tetap sama, cuma datanya diupdate
-        daftarKegiatan[index] = dataForm;
-        sedangEdit = null; // selesai edit, balik ke mode tambah
+        // MODE EDIT: update dokumen yang id-nya cocok
+        kegiatanRef.doc(sedangEdit).update(dataForm);
+        sedangEdit = null;
         tombolSubmit.textContent = 'Tambah Kegiatan';
       }
 
-      localStorage.setItem('kegiatan', JSON.stringify(daftarKegiatan));
       form.reset();
-      tampilkanJadwal();
+      // Gak perlu panggil tampilkanJadwal() manual di sini,
+      // karena onSnapshot di atas otomatis jalan tiap ada perubahan data
     });
 
     function hapusKegiatan(id) {
       const konfirmasi = confirm('Yakin mau hapus kegiatan ini?');
       if (!konfirmasi) return;
 
-      daftarKegiatan = daftarKegiatan.filter(k => k.id !== id);
-      localStorage.setItem('kegiatan', JSON.stringify(daftarKegiatan));
-      tampilkanJadwal();
+      kegiatanRef.doc(id).delete();
     }
 
     function editKegiatan(id) {
@@ -137,7 +156,7 @@
       sedangEdit = id;
       tombolSubmit.textContent = 'Simpan Perubahan';
 
-      window.scrollTo(0, 0); // scroll ke atas biar user lihat form
+      window.scrollTo(0, 0);
     }
 
     function tampilkanJadwal() {
@@ -147,6 +166,11 @@
       });
 
       hasilDiv.innerHTML = '';
+
+      if (terurut.length === 0) {
+        hasilDiv.innerHTML = '<p>Belum ada kegiatan.</p>';
+        return;
+      }
 
       terurut.forEach((keg, index) => {
         let bentrok = false;
@@ -164,15 +188,13 @@
           ${keg.tanggal} | ${keg.jamMulai} - ${keg.jamSelesai}
           ${bentrok ? '<br>⚠️ Bentrok dengan kegiatan sebelumnya!' : ''}
           <div class="tombol-aksi">
-            <button class="btn-edit" onclick="editKegiatan(${keg.id})">Edit</button>
-            <button class="btn-hapus" onclick="hapusKegiatan(${keg.id})">Hapus</button>
+            <button class="btn-edit" onclick="editKegiatan('${keg.id}')">Edit</button>
+            <button class="btn-hapus" onclick="hapusKegiatan('${keg.id}')">Hapus</button>
           </div>
         `;
         hasilDiv.appendChild(div);
       });
     }
-
-    tampilkanJadwal();
   </script>
 
 </body>
