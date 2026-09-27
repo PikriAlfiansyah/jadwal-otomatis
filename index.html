@@ -69,9 +69,10 @@
   <h2>Daftar Kegiatan</h2>
   <div id="hasilJadwal"><p>Memuat data...</p></div>
 
-  <!-- SDK Firebase (versi "compat" biar gampang dipakai tanpa build tools) -->
+  <!-- SDK Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
   <script>
     // 1. Konfigurasi & inisialisasi Firebase
@@ -92,16 +93,26 @@
     const hasilDiv = document.getElementById('hasilJadwal');
     const tombolSubmit = document.getElementById('tombolSubmit');
 
-    let daftarKegiatan = []; // sekarang cuma "cache" sementara, sumber aslinya di Firestore
-    let sedangEdit = null;   // id dokumen Firestore yang lagi diedit
+    let daftarKegiatan = [];
+    let sedangEdit = null;
 
-    // 2. "Dengerin" perubahan data di Firestore secara real-time
-    kegiatanRef.onSnapshot((snapshot) => {
-      daftarKegiatan = snapshot.docs.map(doc => ({
-        id: doc.id,       // id otomatis dari Firestore
-        ...doc.data()     // isi field nama, tanggal, jamMulai, jamSelesai
-      }));
-      tampilkanJadwal();
+    // 2. Login anonim otomatis (biar bisa akses Firestore yang sudah dikunci)
+    firebase.auth().signInAnonymously().catch((error) => {
+      console.error('Gagal login anonim:', error);
+      hasilDiv.innerHTML = '<p>Gagal terhubung ke server. Coba refresh halaman.</p>';
+    });
+
+    // 3. Baru mulai "dengerin" data SETELAH berhasil login
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        kegiatanRef.onSnapshot((snapshot) => {
+          daftarKegiatan = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          tampilkanJadwal();
+        });
+      }
     });
 
     form.addEventListener('submit', function(e) {
@@ -123,18 +134,14 @@
       };
 
       if (sedangEdit === null) {
-        // MODE TAMBAH: kirim data baru ke Firestore
         kegiatanRef.add(dataForm);
       } else {
-        // MODE EDIT: update dokumen yang id-nya cocok
         kegiatanRef.doc(sedangEdit).update(dataForm);
         sedangEdit = null;
         tombolSubmit.textContent = 'Tambah Kegiatan';
       }
 
       form.reset();
-      // Gak perlu panggil tampilkanJadwal() manual di sini,
-      // karena onSnapshot di atas otomatis jalan tiap ada perubahan data
     });
 
     function hapusKegiatan(id) {
