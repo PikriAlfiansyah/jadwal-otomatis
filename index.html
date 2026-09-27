@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jadwal Otomatis</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    input, button {
+      padding: 8px;
+      font-size: 16px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .kegiatan {
+      border-left: 4px solid #4CAF50;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      background: #f4f4f4;
+    }
+    .bentrok {
+      border-left-color: red;
+      background: #ffe6e6;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Jadwal Harianku</h1>
+
+  <form id="formKegiatan">
+    <input type="text" id="namaKegiatan" placeholder="Nama kegiatan" required>
+    <input type="date" id="tanggal" required>
+    <input type="time" id="jamMulai" required>
+    <input type="time" id="jamSelesai" required>
+    <button type="submit">Tambah Kegiatan</button>
+  </form>
+
+  <h2>Daftar Kegiatan</h2>
+  <div id="hasilJadwal"></div>
+
+  <script>
+    const form = document.getElementById('formKegiatan');
+    const hasilDiv = document.getElementById('hasilJadwal');
+
+    let daftarKegiatan = JSON.parse(localStorage.getItem('kegiatan')) || [];
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault(); 
+      const jamMulai = document.getElementById('jamMulai').value;
+const jamSelesai = document.getElementById('jamSelesai').value;
+
+if (jamSelesai <= jamMulai) {
+  alert('Jam selesai harus lebih besar dari jam mulai!');
+  return; // hentikan proses, jangan simpan data
+}
+      const kegiatanBaru = {
+        nama: document.getElementById('namaKegiatan').value,
+        tanggal: document.getElementById('tanggal').value,
+        jamMulai: document.getElementById('jamMulai').value,
+        jamSelesai: document.getElementById('jamSelesai').value
+      };
+
+      daftarKegiatan.push(kegiatanBaru);
+      localStorage.setItem('kegiatan', JSON.stringify(daftarKegiatan));
+
+      form.reset();
+      tampilkanJadwal();
+    });
+
+    function tampilkanJadwal() {
+      const terurut = [...daftarKegiatan].sort((a, b) => {
+        if (a.tanggal !== b.tanggal) return a.tanggal.localeCompare(b.tanggal);
+        return a.jamMulai.localeCompare(b.jamMulai);
+      });
+
+      hasilDiv.innerHTML = '';
+
+      terurut.forEach((keg, index) => {
+        let bentrok = false;
+        if (index > 0) {
+          const sebelumnya = terurut[index - 1];
+          if (sebelumnya.tanggal === keg.tanggal && keg.jamMulai < sebelumnya.jamSelesai) {
+            bentrok = true;
+          }
+        }
+
+        const div = document.createElement('div');
+        div.className = 'kegiatan' + (bentrok ? ' bentrok' : '');
+        div.innerHTML = `
+          <strong>${keg.nama}</strong><br>
+          ${keg.tanggal} | ${keg.jamMulai} - ${keg.jamSelesai}
+          ${bentrok ? '<br>⚠️ Bentrok dengan kegiatan sebelumnya!' : ''}
+        `;
+        hasilDiv.appendChild(div);
+      });
+    }
+
+    tampilkanJadwal();
+  </script>
+
+</body>
+</html>
