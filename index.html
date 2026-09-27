@@ -32,10 +32,26 @@
       padding: 8px 12px;
       margin-bottom: 8px;
       background: #f4f4f4;
+      position: relative;
     }
     .bentrok {
       border-left-color: red;
       background: #ffe6e6;
+    }
+    .tombol-aksi {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+    }
+    .tombol-aksi button {
+      padding: 4px 10px;
+      font-size: 13px;
+    }
+    .btn-hapus {
+      background: #e74c3c;
+    }
+    .btn-edit {
+      background: #3498db;
     }
   </style>
 </head>
@@ -48,7 +64,7 @@
     <input type="date" id="tanggal" required>
     <input type="time" id="jamMulai" required>
     <input type="time" id="jamSelesai" required>
-    <button type="submit">Tambah Kegiatan</button>
+    <button type="submit" id="tombolSubmit">Tambah Kegiatan</button>
   </form>
 
   <h2>Daftar Kegiatan</h2>
@@ -57,31 +73,72 @@
   <script>
     const form = document.getElementById('formKegiatan');
     const hasilDiv = document.getElementById('hasilJadwal');
+    const tombolSubmit = document.getElementById('tombolSubmit');
 
     let daftarKegiatan = JSON.parse(localStorage.getItem('kegiatan')) || [];
 
-    form.addEventListener('submit', function(e) {
-      e.preventDefault(); 
-      const jamMulai = document.getElementById('jamMulai').value;
-const jamSelesai = document.getElementById('jamSelesai').value;
+    // Menyimpan id kegiatan yang lagi diedit (null = mode tambah baru)
+    let sedangEdit = null;
 
-if (jamSelesai <= jamMulai) {
-  alert('Jam selesai harus lebih besar dari jam mulai!');
-  return; // hentikan proses, jangan simpan data
-}
-      const kegiatanBaru = {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const jamMulai = document.getElementById('jamMulai').value;
+      const jamSelesai = document.getElementById('jamSelesai').value;
+
+      if (jamSelesai <= jamMulai) {
+        alert('Jam selesai harus lebih besar dari jam mulai!');
+        return;
+      }
+
+      const dataForm = {
         nama: document.getElementById('namaKegiatan').value,
         tanggal: document.getElementById('tanggal').value,
-        jamMulai: document.getElementById('jamMulai').value,
-        jamSelesai: document.getElementById('jamSelesai').value
+        jamMulai: jamMulai,
+        jamSelesai: jamSelesai
       };
 
-      daftarKegiatan.push(kegiatanBaru);
-      localStorage.setItem('kegiatan', JSON.stringify(daftarKegiatan));
+      if (sedangEdit === null) {
+        // MODE TAMBAH: kasih id unik pakai waktu sekarang
+        dataForm.id = Date.now();
+        daftarKegiatan.push(dataForm);
+      } else {
+        // MODE EDIT: cari kegiatan yang id-nya cocok, timpa datanya
+        const index = daftarKegiatan.findIndex(k => k.id === sedangEdit);
+        dataForm.id = sedangEdit; // id tetap sama, cuma datanya diupdate
+        daftarKegiatan[index] = dataForm;
+        sedangEdit = null; // selesai edit, balik ke mode tambah
+        tombolSubmit.textContent = 'Tambah Kegiatan';
+      }
 
+      localStorage.setItem('kegiatan', JSON.stringify(daftarKegiatan));
       form.reset();
       tampilkanJadwal();
     });
+
+    function hapusKegiatan(id) {
+      const konfirmasi = confirm('Yakin mau hapus kegiatan ini?');
+      if (!konfirmasi) return;
+
+      daftarKegiatan = daftarKegiatan.filter(k => k.id !== id);
+      localStorage.setItem('kegiatan', JSON.stringify(daftarKegiatan));
+      tampilkanJadwal();
+    }
+
+    function editKegiatan(id) {
+      const keg = daftarKegiatan.find(k => k.id === id);
+      if (!keg) return;
+
+      document.getElementById('namaKegiatan').value = keg.nama;
+      document.getElementById('tanggal').value = keg.tanggal;
+      document.getElementById('jamMulai').value = keg.jamMulai;
+      document.getElementById('jamSelesai').value = keg.jamSelesai;
+
+      sedangEdit = id;
+      tombolSubmit.textContent = 'Simpan Perubahan';
+
+      window.scrollTo(0, 0); // scroll ke atas biar user lihat form
+    }
 
     function tampilkanJadwal() {
       const terurut = [...daftarKegiatan].sort((a, b) => {
@@ -106,6 +163,10 @@ if (jamSelesai <= jamMulai) {
           <strong>${keg.nama}</strong><br>
           ${keg.tanggal} | ${keg.jamMulai} - ${keg.jamSelesai}
           ${bentrok ? '<br>⚠️ Bentrok dengan kegiatan sebelumnya!' : ''}
+          <div class="tombol-aksi">
+            <button class="btn-edit" onclick="editKegiatan(${keg.id})">Edit</button>
+            <button class="btn-hapus" onclick="hapusKegiatan(${keg.id})">Hapus</button>
+          </div>
         `;
         hasilDiv.appendChild(div);
       });
