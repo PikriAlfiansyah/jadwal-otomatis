@@ -4,80 +4,165 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jadwal Otomatis</title>
+  <meta name="theme-color" content="#0b0f1a">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body { font-family: system-ui, -apple-system, Arial, sans-serif; max-width: 500px; margin: 20px auto; padding: 0 15px; color: #222; }
+    :root {
+      --bg: #0b0f1a; --card: rgba(255,255,255,.06); --line: rgba(255,255,255,.10);
+      --teks: #e8ecf5; --redup: #8b94a8; --aksen: #7c5cff; --aksen2: #00d4ff; --bahaya: #ff5d73;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, Arial, sans-serif;
+      max-width: 520px; margin: 0 auto; padding: 24px 16px 70px;
+      color: var(--teks); background: var(--bg); min-height: 100vh;
+    }
+    body::before {
+      content: ""; position: fixed; inset: 0; z-index: -1;
+      background:
+        radial-gradient(600px 420px at 8% -5%, rgba(124,92,255,.38), transparent 60%),
+        radial-gradient(520px 420px at 100% 12%, rgba(0,212,255,.22), transparent 60%),
+        var(--bg);
+    }
+    h1 {
+      font-size: 30px; font-weight: 800; letter-spacing: -.5px; margin: 0 0 18px;
+      background: linear-gradient(90deg, #fff, #b7a8ff 50%, #7fe6ff);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .16em; color: var(--redup); margin: 28px 0 8px; }
+
+    /* Form */
     form, .grup { display: flex; flex-direction: column; gap: 10px; }
-    form { margin-bottom: 20px; }
-    label { font-size: 14px; color: #555; }
-    input, select, button { padding: 8px; font-size: 16px; }
-    button { background: #4CAF50; color: white; border: none; cursor: pointer; }
-    .info-jendela { font-size: 13px; color: #777; margin: 0; }
+    form {
+      margin-bottom: 20px; padding: 18px; border-radius: 22px;
+      background: var(--card); border: 1px solid var(--line);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 20px 50px rgba(0,0,0,.35);
+    }
+    label { font-size: 12px; color: var(--redup); font-weight: 600; letter-spacing: .04em; }
+    input, select {
+      font: inherit; font-size: 15px; padding: 11px 13px; color: var(--teks);
+      background: rgba(255,255,255,.07); border: 1px solid var(--line); border-radius: 12px;
+      outline: none; color-scheme: dark; transition: border-color .15s, box-shadow .15s;
+    }
+    input:focus, select:focus { border-color: var(--aksen); box-shadow: 0 0 0 3px rgba(124,92,255,.28); }
+    select option { background: #151a2b; }
+    button {
+      font: inherit; font-size: 15px; font-weight: 700; padding: 12px; color: #fff; border: 0;
+      border-radius: 12px; cursor: pointer;
+      background: linear-gradient(135deg, var(--aksen), #4f8bff 60%, var(--aksen2));
+      box-shadow: 0 8px 22px rgba(124,92,255,.35);
+      transition: transform .15s, filter .15s;
+    }
+    button:hover { filter: brightness(1.12); }
+    button:active { transform: scale(.97); }
+    .info-jendela { font-size: 12px; color: var(--redup); margin: 0; line-height: 1.5; }
+
+    /* Pengingat + toast */
+    .kotak-pengingat {
+      background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+      padding: 14px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .kotak-pengingat .baris { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .kotak-pengingat select { flex: 1; min-width: 150px; }
+    .toast-area { position: fixed; top: 10px; left: 0; right: 0; max-width: 500px; margin: 0 auto; padding: 0 12px; z-index: 20; pointer-events: none; }
+    .toast {
+      pointer-events: auto; padding: 13px 15px; border-radius: 14px; margin-bottom: 8px; font-size: 14px;
+      background: rgba(20,26,43,.92); border: 1px solid var(--line); color: #fff;
+      backdrop-filter: blur(14px); box-shadow: 0 10px 30px rgba(0,0,0,.5);
+    }
 
     /* Kepala kalender + strip minggu */
-    .kepala { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
-    .kepala b { font-size: 18px; }
-    .btn-panah { background: none; color: #555; font-size: 18px; padding: 4px 12px; }
-    .strip { display: flex; gap: 2px; margin: 8px 0; }
-    .hari { flex: 1; background: none; color: #333; padding: 6px 0; display: flex; flex-direction: column; align-items: center; gap: 3px; }
-    .hari small { font-size: 11px; color: #888; }
-    .hari b { width: 32px; height: 32px; line-height: 32px; border-radius: 50%; font-size: 15px; text-align: center; }
-    .hari.ini b { color: #1a73e8; }
-    .hari.pilih b { background: #1a73e8; color: #fff; }
+    .kepala { display: flex; align-items: center; justify-content: space-between; }
+    .kepala b { font-size: 17px; text-transform: capitalize; }
+    .btn-panah {
+      width: 38px; height: 38px; padding: 0; border-radius: 50%; font-size: 20px;
+      background: var(--card); border: 1px solid var(--line); color: var(--teks); box-shadow: none;
+    }
+    .strip {
+      display: flex; gap: 4px; margin: 12px 0; padding: 8px 6px;
+      background: var(--card); border: 1px solid var(--line); border-radius: 20px;
+    }
+    .hari {
+      flex: 1; padding: 6px 0; border-radius: 14px; background: none; box-shadow: none; color: var(--teks);
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .hari small { font-size: 10px; color: var(--redup); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+    .hari b { width: 34px; height: 34px; line-height: 34px; border-radius: 50%; font-size: 14px; text-align: center; }
+    .hari.ini b { box-shadow: inset 0 0 0 1.5px var(--aksen2); color: var(--aksen2); }
+    .hari.pilih b { background: linear-gradient(135deg, var(--aksen), var(--aksen2)); color: #fff; box-shadow: 0 6px 16px rgba(124,92,255,.5); }
     .hari i { width: 5px; height: 5px; border-radius: 50%; }
-    .hari i.titik { background: #bbb; }
-    .baris-chip { display: flex; gap: 6px; margin-bottom: 10px; }
+    .hari i.titik { background: var(--aksen2); box-shadow: 0 0 6px var(--aksen2); }
+    .baris-chip { display: flex; gap: 6px; margin-bottom: 12px; }
     .baris-chip .sp { flex: 1; }
-    .chip { background: #f1f3f4; color: #333; padding: 6px 14px; font-size: 13px; border-radius: 16px; }
-    .chip.aktif { background: #e8f0fe; color: #1a73e8; font-weight: bold; }
+    .chip {
+      padding: 7px 15px; font-size: 13px; font-weight: 600; border-radius: 999px;
+      background: var(--card); border: 1px solid var(--line); color: var(--redup); box-shadow: none;
+    }
+    .chip.aktif { background: rgba(124,92,255,.22); border-color: var(--aksen); color: #fff; }
 
-    .legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; margin-bottom: 6px; }
-    .legenda span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; background: var(--warna); }
-    .tanggal-judul { margin: 16px 0 8px; font-size: 16px; }
+    .legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--redup); margin-bottom: 6px; }
+    .legenda span::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; background: var(--warna); box-shadow: 0 0 8px var(--warna); }
+    .tanggal-judul { margin: 18px 0 10px; font-size: 15px; font-weight: 700; }
 
     /* Kartu (tampilan daftar) */
-    .kegiatan { border-left: 5px solid #7f8c8d; padding: 8px 12px; margin-bottom: 8px; background: #f4f4f4; border-radius: 6px; }
-    .bentrok { background: #ffe6e6; }
-    .tidak-muat { background: #fff4e0; }
-    .meta { font-size: 12px; color: #666; }
-    .label-otomatis { font-size: 12px; color: #2c7bb6; }
-    .tombol-aksi { margin-top: 8px; display: flex; gap: 8px; }
-    .tombol-aksi button { padding: 4px 10px; font-size: 13px; }
-    .btn-hapus { background: #e74c3c; }
-    .btn-edit { background: #3498db; }
+    .kegiatan {
+      padding: 12px 14px; margin-bottom: 10px; border-radius: 16px; line-height: 1.5;
+      background: var(--card); border: 1px solid var(--line); border-left: 4px solid #7f8c8d;
+    }
+    .kegiatan.bentrok { background: rgba(255,93,115,.12); }
+    .kegiatan.tidak-muat { background: rgba(255,184,0,.10); }
+    .meta { font-size: 12px; color: var(--redup); }
+    .label-otomatis { font-size: 12px; color: var(--aksen2); }
+    .tombol-aksi { margin-top: 10px; display: flex; gap: 8px; }
+    .tombol-aksi button { padding: 6px 14px; font-size: 13px; box-shadow: none; }
+    .btn-hapus { background: rgba(255,93,115,.9); }
+    .btn-edit { background: rgba(79,139,255,.9); }
 
-    /* Timeline ala kalender HP (versi 2) */
+    /* Timeline */
     .timeline { position: relative; margin: 14px 0 18px; }
-    .garis { position: absolute; left: 48px; right: 0; border-top: 1px solid #e3e6ea; }
-    .garis.setengah { border-top: 1px dashed #f0f1f3; }
-    .garis span { position: absolute; left: -48px; width: 40px; text-align: right; top: -8px; font-size: 11px; font-weight: 600; color: #70757a; }
+    .garis { position: absolute; left: 48px; right: 0; border-top: 1px solid rgba(255,255,255,.08); }
+    .garis.setengah { border-top: 1px dashed rgba(255,255,255,.04); }
+    .garis span { position: absolute; left: -48px; width: 40px; text-align: right; top: -8px; font-size: 11px; font-weight: 600; color: var(--redup); }
     .garis.setengah span { display: none; }
-
-    .kosong { position: absolute; left: 52px; right: 0; box-sizing: border-box; border: 1px dashed #d5d9de; border-radius: 8px; color: #9aa0a6; font-size: 11px; display: flex; align-items: center; justify-content: center; z-index: 0; }
-
-    .blok { position: absolute; box-sizing: border-box; overflow: hidden; padding: 5px 8px; border-radius: 10px; border-left: 5px solid; font-size: 12px; line-height: 1.35; cursor: pointer; z-index: 1; box-shadow: 0 1px 3px rgba(0,0,0,.15); transition: transform .12s, box-shadow .12s; }
-    .blok:hover { box-shadow: 0 4px 10px rgba(0,0,0,.2); }
+    .kosong {
+      position: absolute; left: 52px; right: 0; border: 1px dashed rgba(255,255,255,.14); border-radius: 12px;
+      color: #5d667a; font-size: 11px; display: flex; align-items: center; justify-content: center; z-index: 0;
+    }
+    .blok {
+      --tinta: #f4f6fb !important;
+      position: absolute; overflow: hidden; padding: 6px 9px; border-radius: 12px; border-left: 4px solid;
+      font-size: 12px; line-height: 1.35; cursor: pointer; z-index: 1;
+      box-shadow: 0 4px 14px rgba(0,0,0,.35); backdrop-filter: blur(6px);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .blok:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(0,0,0,.5); }
     .blok:active { transform: scale(.98); }
     .blok .judul { font-weight: 700; font-size: 13px; color: var(--tinta); padding-right: 12px; }
-    .blok .jam { font-size: 11px; color: var(--tinta); opacity: .8; }
-    .blok .pri { position: absolute; top: 7px; right: 7px; width: 8px; height: 8px; border-radius: 50%; }
-    .blok.fleks { background-image: repeating-linear-gradient(135deg, rgba(255,255,255,.6) 0 6px, transparent 6px 12px); }
-    .blok.tabrak { outline: 2px solid #ea4335; outline-offset: -2px; }
+    .blok .jam { font-size: 11px; color: var(--tinta); opacity: .75; }
+    .blok .pri { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
+    .blok.fleks { background-image: repeating-linear-gradient(135deg, rgba(255,255,255,.08) 0 6px, transparent 6px 12px) !important; }
+    .blok.tabrak { outline: 2px solid var(--bahaya); outline-offset: -2px; }
     .blok.pendek { display: flex; align-items: center; gap: 8px; white-space: nowrap; padding-top: 0; padding-bottom: 0; }
-
-    .sekarang { position: absolute; left: 48px; right: 0; border-top: 2px solid #ea4335; z-index: 3; }
-    .sekarang::before { content: ""; position: absolute; left: -5px; top: -6px; width: 10px; height: 10px; border-radius: 50%; background: #ea4335; }
-    .sekarang span { position: absolute; left: -48px; top: -9px; background: #ea4335; color: #fff; font-size: 10px; font-weight: 600; padding: 1px 5px; border-radius: 8px; }
+    .sekarang { position: absolute; left: 48px; right: 0; border-top: 2px solid var(--bahaya); z-index: 3; box-shadow: 0 0 12px rgba(255,93,115,.7); }
+    .sekarang::before { content: ""; position: absolute; left: -5px; top: -6px; width: 10px; height: 10px; border-radius: 50%; background: var(--bahaya); }
+    .sekarang span { position: absolute; left: -48px; top: -9px; background: var(--bahaya); color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 8px; }
 
     /* Lembar detail (bottom sheet) */
-    .sheet-latar { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 10; }
-    .sheet { display: none; position: fixed; left: 0; right: 0; bottom: 0; max-width: 500px; margin: 0 auto; background: #fff; border-radius: 16px 16px 0 0; padding: 18px 18px 22px; z-index: 11; box-shadow: 0 -4px 20px rgba(0,0,0,.2); }
+    .sheet-latar { display: none; position: fixed; inset: 0; background: rgba(5,8,16,.6); backdrop-filter: blur(4px); z-index: 10; }
+    .sheet {
+      display: none; position: fixed; left: 0; right: 0; bottom: 0; max-width: 520px; margin: 0 auto;
+      background: #141a2b; border: 1px solid var(--line); border-bottom: 0; border-radius: 26px 26px 0 0;
+      padding: 22px 20px 26px; z-index: 11; box-shadow: 0 -10px 40px rgba(0,0,0,.6);
+    }
     .sheet.tampil, .sheet-latar.tampil { display: block; }
-    .sheet h3 { margin: 0 0 4px; }
-    .sheet p { margin: 4px 0; font-size: 14px; color: #555; }
+    .sheet h3 { margin: 0 0 6px; font-size: 19px; }
+    .sheet p { margin: 5px 0; font-size: 14px; color: #aab3c5; }
+    .sheet p b { color: #fff; font-size: 16px; }
     .sheet .titik-kat { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
-    .sheet .tombol-aksi { margin-top: 14px; }
-    .sheet .tombol-aksi button { padding: 8px 16px; font-size: 14px; }
-    .btn-tutup { background: #ecf0f1; color: #333; }
+    .sheet .tombol-aksi { margin-top: 16px; }
+    .sheet .tombol-aksi button { padding: 10px 18px; font-size: 14px; }
+    .btn-tutup { background: rgba(255,255,255,.10); box-shadow: none; }
   </style>
 </head>
 <body>
@@ -123,6 +208,25 @@
     <button type="submit" id="tombolSubmit">Tambah Kegiatan</button>
   </form>
 
+  <!-- Pengaturan pengingat -->
+  <div class="kotak-pengingat">
+    <div class="baris">
+      <label for="pengingat">🔔 Pengingat</label>
+      <select id="pengingat">
+        <option value="mati">Mati</option>
+        <option value="5">5 menit sebelum mulai</option>
+        <option value="10">10 menit sebelum mulai</option>
+        <option value="15">15 menit sebelum mulai</option>
+        <option value="30">30 menit sebelum mulai</option>
+        <option value="60">1 jam sebelum mulai</option>
+      </select>
+    </div>
+    <div class="baris">
+      <button type="button" class="chip" id="btnIzin">Aktifkan notifikasi</button>
+    </div>
+    <p class="info-jendela" id="statusNotif"></p>
+  </div>
+
   <h2>Kalender</h2>
 
   <div class="kepala">
@@ -145,6 +249,7 @@
 
   <div class="sheet-latar" id="sheetLatar"></div>
   <div class="sheet" id="sheet"></div>
+  <div class="toast-area" id="toastArea"></div>
 
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -243,6 +348,7 @@
     const btnHariIni = $('btnHariIni'), btnSemua = $('btnSemua');
     const btnTimeline = $('btnTimeline'), btnDaftar = $('btnDaftar');
     const sheet = $('sheet'), sheetLatar = $('sheetLatar');
+    const pengingatSelect = $('pengingat'), btnIzin = $('btnIzin'), statusNotif = $('statusNotif');
 
     $('infoJendela').textContent =
       'Sistem mencari waktu kosong antara ' + JAM_AWAL_HARI + ' dan ' + JAM_AKHIR_HARI +
@@ -284,7 +390,7 @@
     updateHint();
 
     let daftarKegiatan = [];
-    let hasilTersusun = [];          // hasil susunJadwal terakhir (dipakai lembar detail)
+    let hasilTersusun = [];          // hasil susunJadwal terakhir (dipakai detail & pengingat)
     let sedangEdit = null;
     let dataSiap = false;
     let filterTanggal = hariIni();   // null = semua tanggal
@@ -333,6 +439,125 @@
     btnTimeline.addEventListener('click', () => setTampilan('timeline'));
     btnDaftar.addEventListener('click', () => setTampilan('daftar'));
 
+    // ===== PENGINGAT =====
+    function bacaSimpan(k, def) {
+      try { const v = localStorage.getItem(k); return v === null ? def : v; } catch (e) { return def; }
+    }
+    function tulisSimpan(k, v) {
+      try { localStorage.setItem(k, v); } catch (e) {}
+    }
+
+    pengingatSelect.value = bacaSimpan('pengingatMenit', '10');
+    if (!pengingatSelect.value) pengingatSelect.value = '10';
+    pengingatSelect.addEventListener('change', () => {
+      tulisSimpan('pengingatMenit', pengingatSelect.value);
+      cekPengingat();
+    });
+
+    // Catatan pengingat yang sudah dikirim, supaya tidak muncul berulang
+    let sudahNotif = new Set();
+    try { sudahNotif = new Set(JSON.parse(bacaSimpan('sudahNotif', '[]'))); } catch (e) {}
+    function tandaiNotif(kunci) {
+      sudahNotif.add(kunci);
+      sudahNotif = new Set([...sudahNotif].filter(k => k.startsWith(hariIni()))); // buang catatan hari lain
+      tulisSimpan('sudahNotif', JSON.stringify([...sudahNotif]));
+    }
+
+    // Service worker (file sw.js) dibutuhkan supaya notifikasi jalan di HP Android
+    let swReg = null;
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').then(r => { swReg = r; }).catch(() => {});
+    }
+
+    function tampilToast(teks) {
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.textContent = teks;
+      t.onclick = () => t.remove();
+      $('toastArea').appendChild(t);
+      setTimeout(() => t.remove(), 9000);
+    }
+
+    function updateStatusNotif() {
+      if (!('Notification' in window)) {
+        btnIzin.style.display = 'none';
+        statusNotif.textContent = 'Browser ini tidak mendukung notifikasi sistem. Pengingat tetap tampil di dalam halaman.';
+        return;
+      }
+      const izin = Notification.permission;
+      if (izin === 'granted') {
+        btnIzin.style.display = '';
+        btnIzin.textContent = 'Tes notifikasi';
+        statusNotif.textContent = 'Notifikasi aktif. Halaman ini harus tetap terbuka agar pengingat muncul.';
+      } else if (izin === 'denied') {
+        btnIzin.style.display = 'none';
+        statusNotif.textContent = 'Notifikasi diblokir browser. Izinkan lewat ikon gembok di address bar. Sementara itu pengingat tetap tampil di dalam halaman.';
+      } else {
+        btnIzin.style.display = '';
+        btnIzin.textContent = 'Aktifkan notifikasi';
+        statusNotif.textContent = 'Belum diizinkan. Tekan tombol untuk mengaktifkan notifikasi sistem.';
+      }
+    }
+
+    btnIzin.addEventListener('click', async () => {
+      if (Notification.permission === 'granted') {
+        kirimNotif('Tes pengingat', 'Notifikasi berfungsi dengan baik.', 'tes-' + Date.now());
+        return;
+      }
+      try { await Notification.requestPermission(); } catch (e) {}
+      updateStatusNotif();
+    });
+    updateStatusNotif();
+
+    async function kirimNotif(judul, isi, tag) {
+      const bisaSistem = ('Notification' in window) && Notification.permission === 'granted';
+
+      // Pesan di dalam halaman: tampil kalau halaman sedang dibuka, atau kalau notifikasi sistem tidak tersedia
+      if (document.visibilityState === 'visible' || !bisaSistem) {
+        tampilToast('🔔 ' + judul + ' — ' + isi);
+      }
+      if (!bisaSistem) return;
+
+      try {
+        const reg = swReg || (navigator.serviceWorker && await navigator.serviceWorker.getRegistration());
+        if (reg) { await reg.showNotification(judul, { body: isi, tag: tag }); return; }
+      } catch (e) {}
+      try { new Notification(judul, { body: isi, tag: tag }); } catch (e) {}
+    }
+
+    function cekPengingat() {
+      if (!dataSiap || pengingatSelect.value === 'mati') return;
+
+      const sebelum = parseInt(pengingatSelect.value, 10);
+      const skrg = new Date();
+      const menitSkrg = skrg.getHours() * 60 + skrg.getMinutes();
+      const tglHariIni = hariIni();
+
+      hasilTersusun.forEach(keg => {
+        if (keg.tanggal !== tglHariIni || keg.tidakMuat) return;
+        const selisih = keMenit(keg.mulai) - menitSkrg;
+
+        if (selisih > 0 && selisih <= sebelum) {
+          const kunci = tglHariIni + '|' + keg.id + '|' + keg.mulai + '|sebelum';
+          if (!sudahNotif.has(kunci)) {
+            tandaiNotif(kunci);
+            kirimNotif(keg.nama, 'Mulai ' + selisih + ' menit lagi (' + keg.mulai + ')', kunci);
+          }
+        } else if (selisih <= 0 && selisih > -5) {
+          const kunci = tglHariIni + '|' + keg.id + '|' + keg.mulai + '|mulai';
+          if (!sudahNotif.has(kunci)) {
+            tandaiNotif(kunci);
+            kirimNotif(keg.nama, 'Waktunya mulai sekarang (' + keg.mulai + ')', kunci);
+          }
+        }
+      });
+    }
+
+    setInterval(cekPengingat, 20000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') cekPengingat();
+    });
+
     // ===== 2. LOGIN ANONIM + DENGERIN DATA =====
     firebase.auth().signInAnonymously().catch((error) => {
       console.error('Gagal login anonim:', error);
@@ -345,6 +570,7 @@
           daftarKegiatan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           dataSiap = true;
           tampilkanJadwal();
+          cekPengingat();
         });
       }
     });
@@ -460,6 +686,15 @@
     function keJam(menit) {
       return String(Math.floor(menit / 60)).padStart(2, '0') + ':' + String(menit % 60).padStart(2, '0');
     }
+
+    // Jam sekarang (dibulatkan ke atas) untuk titik awal jadwal fleksibel hari ini
+    const PEMBULATAN_MENIT = 5; // isi 1 kalau mau menit persis
+    function menitSekarangBulat() {
+      const skrg = new Date();
+      const menit = skrg.getHours() * 60 + skrg.getMinutes();
+      return Math.ceil(menit / PEMBULATAN_MENIT) * PEMBULATAN_MENIT;
+    }
+
     function esc(teks) {
       const el = document.createElement('div');
       el.textContent = teks;
@@ -495,6 +730,7 @@
         const slotKosong = [];
         const batasAkhir = keMenit(JAM_AKHIR_HARI);
         let pointer = keMenit(JAM_AWAL_HARI);
+        if (tgl === hariIni()) pointer = Math.max(pointer, menitSekarangBulat());
         tetap.forEach(k => {
           const akhirSlot = Math.min(keMenit(k.mulai), batasAkhir);
           if (akhirSlot > pointer) slotKosong.push({ mulai: pointer, selesai: akhirSlot });
@@ -538,8 +774,8 @@
         '<p><span class="titik-kat" style="background:' + KATEGORI[kode].warna + '"></span>' +
           KATEGORI[kode].nama + (keg.kategoriAuto ? ' (otomatis)' : '') + '</p>' +
         '<p>Prioritas ' + NAMA_PRIORITAS[prioritasKegiatan(keg)] + (keg.prioritasAuto ? ' (otomatis)' : '') + '</p>' +
-        (keg.tipe === 'fleksibel' && !keg.tidakMuat ? '<p style="color:#2c7bb6">Jam diatur otomatis oleh sistem</p>' : '') +
-        (keg.bentrok ? '<p style="color:#e74c3c">⚠️ Bentrok dengan kegiatan lain</p>' : '') +
+        (keg.tipe === 'fleksibel' && !keg.tidakMuat ? '<p style="color:#00d4ff">Jam diatur otomatis oleh sistem</p>' : '') +
+        (keg.bentrok ? '<p style="color:#ff5d73">⚠️ Bentrok dengan kegiatan lain</p>' : '') +
         '<div class="tombol-aksi">' +
           '<button class="btn-edit" onclick="editKegiatan(\'' + keg.id + '\')">Edit</button>' +
           '<button class="btn-hapus" onclick="hapusKegiatan(\'' + keg.id + '\')">Hapus</button>' +
@@ -630,7 +866,7 @@
         wrap.className = 'timeline';
         wrap.style.height = y(akhir) + 'px';
 
-        // Garis tiap jam (tebak) dan tiap setengah jam (putus-putus tipis)
+        // Garis tiap jam (tebal) dan tiap setengah jam (putus-putus tipis)
         for (let m = awal; m <= akhir; m += 30) {
           const g = document.createElement('div');
           g.className = 'garis' + (m % 60 ? ' setengah' : '');
@@ -716,19 +952,19 @@
       if (!dataSiap) return;
 
       hasilDiv.innerHTML = '';
+      hasilTersusun = susunJadwal(daftarKegiatan);
 
       if (daftarKegiatan.length === 0) {
         hasilDiv.innerHTML = '<p>Belum ada kegiatan. Tambahkan lewat form di atas.</p>';
         return;
       }
 
-      hasilTersusun = susunJadwal(daftarKegiatan);
       let daftar = filterTanggal ? hasilTersusun.filter(k => k.tanggal === filterTanggal) : hasilTersusun;
 
       if (daftar.length === 0) {
         hasilDiv.innerHTML =
           '<p>Belum ada kegiatan di ' + namaTanggal(filterTanggal) + '.</p>' +
-          '<p class="info-jendela">Ada ' + daftarKegiatan.length + ' kegiatan di tanggal lain. Titik abu-abu di bawah angka tanggal menandai hari yang berisi kegiatan.</p>';
+          '<p class="info-jendela">Ada ' + daftarKegiatan.length + ' kegiatan di tanggal lain. Titik bercahaya di bawah angka tanggal menandai hari yang berisi kegiatan.</p>';
         return;
       }
 
