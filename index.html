@@ -5,53 +5,79 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jadwal Otomatis</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 500px;
-      margin: 20px auto;
-      padding: 0 15px;
-    }
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    input, button {
-      padding: 8px;
-      font-size: 16px;
-    }
-    button {
-      background: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    .kegiatan {
-      border-left: 4px solid #4CAF50;
-      padding: 8px 12px;
-      margin-bottom: 8px;
-      background: #f4f4f4;
-    }
-    .bentrok {
-      border-left-color: red;
-      background: #ffe6e6;
-    }
-    .tombol-aksi {
-      margin-top: 8px;
-      display: flex;
-      gap: 8px;
-    }
-    .tombol-aksi button {
-      padding: 4px 10px;
-      font-size: 13px;
-    }
-    .btn-hapus {
-      background: #e74c3c;
-    }
-    .btn-edit {
-      background: #3498db;
-    }
+    body { font-family: system-ui, -apple-system, Arial, sans-serif; max-width: 500px; margin: 20px auto; padding: 0 15px; color: #222; }
+    form, .grup { display: flex; flex-direction: column; gap: 10px; }
+    form { margin-bottom: 20px; }
+    label { font-size: 14px; color: #555; }
+    input, select, button { padding: 8px; font-size: 16px; }
+    button { background: #4CAF50; color: white; border: none; cursor: pointer; }
+    .info-jendela { font-size: 13px; color: #777; margin: 0; }
+
+    /* Kepala kalender + strip minggu */
+    .kepala { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+    .kepala b { font-size: 18px; }
+    .btn-panah { background: none; color: #555; font-size: 18px; padding: 4px 12px; }
+    .strip { display: flex; gap: 2px; margin: 8px 0; }
+    .hari { flex: 1; background: none; color: #333; padding: 6px 0; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .hari small { font-size: 11px; color: #888; }
+    .hari b { width: 32px; height: 32px; line-height: 32px; border-radius: 50%; font-size: 15px; text-align: center; }
+    .hari.ini b { color: #1a73e8; }
+    .hari.pilih b { background: #1a73e8; color: #fff; }
+    .hari i { width: 5px; height: 5px; border-radius: 50%; }
+    .hari i.titik { background: #bbb; }
+    .baris-chip { display: flex; gap: 6px; margin-bottom: 10px; }
+    .baris-chip .sp { flex: 1; }
+    .chip { background: #f1f3f4; color: #333; padding: 6px 14px; font-size: 13px; border-radius: 16px; }
+    .chip.aktif { background: #e8f0fe; color: #1a73e8; font-weight: bold; }
+
+    .legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; margin-bottom: 6px; }
+    .legenda span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; background: var(--warna); }
+    .tanggal-judul { margin: 16px 0 8px; font-size: 16px; }
+
+    /* Kartu (tampilan daftar) */
+    .kegiatan { border-left: 5px solid #7f8c8d; padding: 8px 12px; margin-bottom: 8px; background: #f4f4f4; border-radius: 6px; }
+    .bentrok { background: #ffe6e6; }
+    .tidak-muat { background: #fff4e0; }
+    .meta { font-size: 12px; color: #666; }
+    .label-otomatis { font-size: 12px; color: #2c7bb6; }
+    .tombol-aksi { margin-top: 8px; display: flex; gap: 8px; }
+    .tombol-aksi button { padding: 4px 10px; font-size: 13px; }
+    .btn-hapus { background: #e74c3c; }
+    .btn-edit { background: #3498db; }
+
+    /* Timeline ala kalender HP (versi 2) */
+    .timeline { position: relative; margin: 14px 0 18px; }
+    .garis { position: absolute; left: 48px; right: 0; border-top: 1px solid #e3e6ea; }
+    .garis.setengah { border-top: 1px dashed #f0f1f3; }
+    .garis span { position: absolute; left: -48px; width: 40px; text-align: right; top: -8px; font-size: 11px; font-weight: 600; color: #70757a; }
+    .garis.setengah span { display: none; }
+
+    .kosong { position: absolute; left: 52px; right: 0; box-sizing: border-box; border: 1px dashed #d5d9de; border-radius: 8px; color: #9aa0a6; font-size: 11px; display: flex; align-items: center; justify-content: center; z-index: 0; }
+
+    .blok { position: absolute; box-sizing: border-box; overflow: hidden; padding: 5px 8px; border-radius: 10px; border-left: 5px solid; font-size: 12px; line-height: 1.35; cursor: pointer; z-index: 1; box-shadow: 0 1px 3px rgba(0,0,0,.15); transition: transform .12s, box-shadow .12s; }
+    .blok:hover { box-shadow: 0 4px 10px rgba(0,0,0,.2); }
+    .blok:active { transform: scale(.98); }
+    .blok .judul { font-weight: 700; font-size: 13px; color: var(--tinta); padding-right: 12px; }
+    .blok .jam { font-size: 11px; color: var(--tinta); opacity: .8; }
+    .blok .pri { position: absolute; top: 7px; right: 7px; width: 8px; height: 8px; border-radius: 50%; }
+    .blok.fleks { background-image: repeating-linear-gradient(135deg, rgba(255,255,255,.6) 0 6px, transparent 6px 12px); }
+    .blok.tabrak { outline: 2px solid #ea4335; outline-offset: -2px; }
+    .blok.pendek { display: flex; align-items: center; gap: 8px; white-space: nowrap; padding-top: 0; padding-bottom: 0; }
+
+    .sekarang { position: absolute; left: 48px; right: 0; border-top: 2px solid #ea4335; z-index: 3; }
+    .sekarang::before { content: ""; position: absolute; left: -5px; top: -6px; width: 10px; height: 10px; border-radius: 50%; background: #ea4335; }
+    .sekarang span { position: absolute; left: -48px; top: -9px; background: #ea4335; color: #fff; font-size: 10px; font-weight: 600; padding: 1px 5px; border-radius: 8px; }
+
+    /* Lembar detail (bottom sheet) */
+    .sheet-latar { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 10; }
+    .sheet { display: none; position: fixed; left: 0; right: 0; bottom: 0; max-width: 500px; margin: 0 auto; background: #fff; border-radius: 16px 16px 0 0; padding: 18px 18px 22px; z-index: 11; box-shadow: 0 -4px 20px rgba(0,0,0,.2); }
+    .sheet.tampil, .sheet-latar.tampil { display: block; }
+    .sheet h3 { margin: 0 0 4px; }
+    .sheet p { margin: 4px 0; font-size: 14px; color: #555; }
+    .sheet .titik-kat { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+    .sheet .tombol-aksi { margin-top: 14px; }
+    .sheet .tombol-aksi button { padding: 8px 16px; font-size: 14px; }
+    .btn-tutup { background: #ecf0f1; color: #333; }
   </style>
 </head>
 <body>
@@ -61,21 +87,138 @@
   <form id="formKegiatan">
     <input type="text" id="namaKegiatan" placeholder="Nama kegiatan" required>
     <input type="date" id="tanggal" required>
-    <input type="time" id="jamMulai" required>
-    <input type="time" id="jamSelesai" required>
+
+    <label for="kategori">Kategori</label>
+    <select id="kategori"></select>
+    <p class="info-jendela" id="hintKategori"></p>
+
+    <label for="prioritas">Prioritas</label>
+    <select id="prioritas">
+      <option value="otomatis" selected>Otomatis (tebak dari nama & kategori)</option>
+      <option value="tinggi">Tinggi</option>
+      <option value="sedang">Sedang</option>
+      <option value="rendah">Rendah</option>
+    </select>
+    <p class="info-jendela" id="hintPrioritas"></p>
+
+    <label for="tipe">Jenis kegiatan</label>
+    <select id="tipe">
+      <option value="tetap">Jam tetap (aku tentukan jamnya)</option>
+      <option value="fleksibel">Fleksibel (sistem yang cari jamnya)</option>
+    </select>
+
+    <div class="grup" id="grupTetap">
+      <label for="jamMulai">Jam mulai</label>
+      <input type="time" id="jamMulai">
+      <label for="jamSelesai">Jam selesai</label>
+      <input type="time" id="jamSelesai">
+    </div>
+
+    <div class="grup" id="grupFleksibel">
+      <label for="durasi">Durasi (menit)</label>
+      <input type="number" id="durasi" min="5" step="5" placeholder="Contoh: 90">
+      <p class="info-jendela" id="infoJendela"></p>
+    </div>
+
     <button type="submit" id="tombolSubmit">Tambah Kegiatan</button>
   </form>
 
-  <h2>Daftar Kegiatan</h2>
+  <h2>Kalender</h2>
+
+  <div class="kepala">
+    <button type="button" class="btn-panah" id="btnPrev" title="Minggu sebelumnya">‹</button>
+    <b id="judulBulan"></b>
+    <button type="button" class="btn-panah" id="btnNext" title="Minggu berikutnya">›</button>
+  </div>
+  <div class="strip" id="strip"></div>
+
+  <div class="baris-chip">
+    <button type="button" class="chip" id="btnHariIni">Hari ini</button>
+    <button type="button" class="chip" id="btnSemua">Semua</button>
+    <span class="sp"></span>
+    <button type="button" class="chip" id="btnTimeline">Timeline</button>
+    <button type="button" class="chip" id="btnDaftar">Daftar</button>
+  </div>
+
+  <div class="legenda" id="legenda"></div>
   <div id="hasilJadwal"><p>Memuat data...</p></div>
 
-  <!-- SDK Firebase -->
+  <div class="sheet-latar" id="sheetLatar"></div>
+  <div class="sheet" id="sheet"></div>
+
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
   <script>
-    // 1. Konfigurasi & inisialisasi Firebase
+    // ===== PENGATURAN =====
+    const JAM_AWAL_HARI = "06:00";
+    const JAM_AKHIR_HARI = "22:00";
+    const PX_PER_MENIT = 1.2; // 1.2 = 72px per jam. Naikkan biar lebih lega.
+
+    const KATEGORI = {
+      kerja:    { nama: 'Kerja',    warna: '#8e44ad' },
+      belajar:  { nama: 'Belajar',  warna: '#3498db' },
+      olahraga: { nama: 'Olahraga', warna: '#e67e22' },
+      pribadi:  { nama: 'Pribadi',  warna: '#16a085' },
+      lainnya:  { nama: 'Lainnya',  warna: '#7f8c8d' }
+    };
+
+    const KATA_KUNCI = {
+      kerja:    ['kerja', 'meeting', 'rapat', 'kantor', 'klien', 'presentasi', 'proyek', 'project', 'deadline', 'laporan', 'email', 'interview'],
+      belajar:  ['belajar', 'kuliah', 'kelas', 'tugas', 'ujian', 'kursus', 'baca', 'riset', 'skripsi', 'bimbel', 'study', 'learn'],
+      olahraga: ['olahraga', 'gym', 'lari', 'jogging', 'renang', 'yoga', 'futsal', 'badminton', 'sepeda', 'senam', 'workout', 'fitness', 'bola'],
+      pribadi:  ['makan', 'mandi', 'tidur', 'istirahat', 'keluarga', 'teman', 'nonton', 'hobi', 'belanja', 'santai', 'ibadah', 'sholat', 'salat', 'doa', 'masak', 'bermain', 'jalan']
+    };
+
+    const KATA_KUNCI_PRIORITAS = {
+      tinggi: ['deadline', 'ujian', 'urgent', 'penting', 'darurat', 'wajib', 'presentasi', 'interview', 'sidang', 'meeting', 'rapat', 'klien', 'dokter', 'bayar', 'tagihan'],
+      rendah: ['nonton', 'santai', 'main', 'game', 'rebahan', 'hobi', 'opsional', 'nanti', 'scroll']
+    };
+
+    const PRIORITAS_KATEGORI = { kerja: 'tinggi', belajar: 'sedang', olahraga: 'sedang', pribadi: 'rendah', lainnya: 'sedang' };
+    const BOBOT_PRIORITAS = { tinggi: 0, sedang: 1, rendah: 2 };
+    const NAMA_PRIORITAS = { tinggi: 'Tinggi', sedang: 'Sedang', rendah: 'Rendah' };
+
+    const IKON = { kerja: '💼', belajar: '📚', olahraga: '🏃', pribadi: '🏠', lainnya: '📌' };
+    const WARNA_PRI = { tinggi: '#ea4335', sedang: '#f9ab00', rendah: '#34a853' };
+
+    // ===== TEBAK OTOMATIS =====
+    function adaKataKunci(nama, daftar) {
+      const kata = nama.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+      return kata.some(k => daftar.some(kw => k.startsWith(kw)));
+    }
+    function tebakKategori(nama) {
+      for (const kode of Object.keys(KATA_KUNCI)) {
+        if (adaKataKunci(nama, KATA_KUNCI[kode])) return kode;
+      }
+      return 'lainnya';
+    }
+    function tebakPrioritas(nama, kategori) {
+      if (adaKataKunci(nama, KATA_KUNCI_PRIORITAS.tinggi)) return 'tinggi';
+      if (adaKataKunci(nama, KATA_KUNCI_PRIORITAS.rendah)) return 'rendah';
+      return PRIORITAS_KATEGORI[kategori] || 'sedang';
+    }
+
+    // ===== FUNGSI TANGGAL =====
+    function formatISO(dt) {
+      return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+    }
+    function hariIni() { return formatISO(new Date()); }
+    function geserTanggal(tgl, n) {
+      const [y, m, d] = tgl.split('-').map(Number);
+      return formatISO(new Date(y, m - 1, d + n));
+    }
+    function namaTanggal(tgl) {
+      const [y, m, d] = tgl.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    }
+    function namaBulan(tgl) {
+      const [y, m, d] = tgl.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+    }
+
+    // ===== 1. FIREBASE =====
     const firebaseConfig = {
       apiKey: "AIzaSyDrnuoOBpdtFtp1Vy52pp28Web-NK-wA7M",
       authDomain: "jadwal-otomatis-954b7.firebaseapp.com",
@@ -84,124 +227,534 @@
       messagingSenderId: "325470252976",
       appId: "1:325470252976:web:d442365eba2b6e354b7075"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const kegiatanRef = db.collection('kegiatan');
 
-    const form = document.getElementById('formKegiatan');
-    const hasilDiv = document.getElementById('hasilJadwal');
-    const tombolSubmit = document.getElementById('tombolSubmit');
+    // ===== ELEMEN HALAMAN =====
+    const $ = (id) => document.getElementById(id);
+    const form = $('formKegiatan'), hasilDiv = $('hasilJadwal'), tombolSubmit = $('tombolSubmit');
+    const namaInput = $('namaKegiatan'), tanggalInput = $('tanggal'), tipeSelect = $('tipe');
+    const kategoriSelect = $('kategori'), hintKategori = $('hintKategori');
+    const prioritasSelect = $('prioritas'), hintPrioritas = $('hintPrioritas');
+    const grupTetap = $('grupTetap'), grupFleksibel = $('grupFleksibel');
+    const jamMulaiInput = $('jamMulai'), jamSelesaiInput = $('jamSelesai'), durasiInput = $('durasi');
+    const stripDiv = $('strip'), judulBulan = $('judulBulan');
+    const btnHariIni = $('btnHariIni'), btnSemua = $('btnSemua');
+    const btnTimeline = $('btnTimeline'), btnDaftar = $('btnDaftar');
+    const sheet = $('sheet'), sheetLatar = $('sheetLatar');
+
+    $('infoJendela').textContent =
+      'Sistem mencari waktu kosong antara ' + JAM_AWAL_HARI + ' dan ' + JAM_AKHIR_HARI +
+      '. Prioritas tinggi ditempatkan lebih dulu (dapat jam paling awal).';
+
+    const opsiOtomatis = document.createElement('option');
+    opsiOtomatis.value = 'otomatis';
+    opsiOtomatis.textContent = 'Otomatis (tebak dari nama)';
+    kategoriSelect.appendChild(opsiOtomatis);
+
+    Object.keys(KATEGORI).forEach(kode => {
+      const opsi = document.createElement('option');
+      opsi.value = kode;
+      opsi.textContent = KATEGORI[kode].nama;
+      kategoriSelect.appendChild(opsi);
+
+      const item = document.createElement('span');
+      item.textContent = KATEGORI[kode].nama;
+      item.style.setProperty('--warna', KATEGORI[kode].warna);
+      $('legenda').appendChild(item);
+    });
+    kategoriSelect.value = 'otomatis';
+
+    function kategoriTerpilih(nama) {
+      return kategoriSelect.value === 'otomatis' ? tebakKategori(nama) : kategoriSelect.value;
+    }
+
+    function updateHint() {
+      const nama = namaInput.value.trim();
+      hintKategori.textContent = kategoriSelect.value !== 'otomatis' ? ''
+        : nama ? 'Terdeteksi: ' + KATEGORI[tebakKategori(nama)].nama : 'Kategori akan ditebak dari nama kegiatan.';
+      hintPrioritas.textContent = prioritasSelect.value !== 'otomatis' ? ''
+        : nama ? 'Terdeteksi: Prioritas ' + NAMA_PRIORITAS[tebakPrioritas(nama, kategoriTerpilih(nama))]
+        : 'Prioritas akan ditebak dari nama dan kategori kegiatan.';
+    }
+    namaInput.addEventListener('input', updateHint);
+    kategoriSelect.addEventListener('change', updateHint);
+    prioritasSelect.addEventListener('change', updateHint);
+    updateHint();
 
     let daftarKegiatan = [];
+    let hasilTersusun = [];          // hasil susunJadwal terakhir (dipakai lembar detail)
     let sedangEdit = null;
+    let dataSiap = false;
+    let filterTanggal = hariIni();   // null = semua tanggal
+    let tampilan = 'timeline';
 
-    // 2. Login anonim otomatis (biar bisa akses Firestore yang sudah dikunci)
+    // ===== FILTER, STRIP MINGGU, TAMPILAN =====
+    function setFilter(tgl) {
+      filterTanggal = tgl;
+      btnSemua.classList.toggle('aktif', tgl === null);
+      btnHariIni.classList.toggle('aktif', tgl === hariIni());
+      if (tgl && sedangEdit === null) tanggalInput.value = tgl;
+      tampilkanJadwal();
+    }
+
+    function setTampilan(mode) {
+      tampilan = mode;
+      btnTimeline.classList.toggle('aktif', mode === 'timeline');
+      btnDaftar.classList.toggle('aktif', mode === 'daftar');
+      tampilkanJadwal();
+    }
+
+    function renderStrip() {
+      const acuan = filterTanggal || hariIni();
+      const [y, m, d] = acuan.split('-').map(Number);
+      const urutanHari = (new Date(y, m - 1, d).getDay() + 6) % 7; // Senin = 0
+      const senin = geserTanggal(acuan, -urutanHari);
+
+      judulBulan.textContent = namaBulan(acuan);
+      stripDiv.innerHTML = '';
+      ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].forEach((nm, i) => {
+        const tgl = geserTanggal(senin, i);
+        const ada = daftarKegiatan.some(k => k.tanggal === tgl);
+        const el = document.createElement('button');
+        el.type = 'button';
+        el.className = 'hari' + (tgl === filterTanggal ? ' pilih' : '') + (tgl === hariIni() ? ' ini' : '');
+        el.innerHTML = '<small>' + nm + '</small><b>' + Number(tgl.slice(8)) + '</b><i class="' + (ada ? 'titik' : '') + '"></i>';
+        el.onclick = () => setFilter(tgl);
+        stripDiv.appendChild(el);
+      });
+    }
+
+    btnHariIni.addEventListener('click', () => setFilter(hariIni()));
+    btnSemua.addEventListener('click', () => setFilter(null));
+    $('btnPrev').addEventListener('click', () => setFilter(geserTanggal(filterTanggal || hariIni(), -7)));
+    $('btnNext').addEventListener('click', () => setFilter(geserTanggal(filterTanggal || hariIni(), 7)));
+    btnTimeline.addEventListener('click', () => setTampilan('timeline'));
+    btnDaftar.addEventListener('click', () => setTampilan('daftar'));
+
+    // ===== 2. LOGIN ANONIM + DENGERIN DATA =====
     firebase.auth().signInAnonymously().catch((error) => {
       console.error('Gagal login anonim:', error);
       hasilDiv.innerHTML = '<p>Gagal terhubung ke server. Coba refresh halaman.</p>';
     });
 
-    // 3. Baru mulai "dengerin" data SETELAH berhasil login
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
         kegiatanRef.onSnapshot((snapshot) => {
-          daftarKegiatan = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
+          daftarKegiatan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          dataSiap = true;
           tampilkanJadwal();
         });
       }
     });
 
+    // ===== 3. FORM =====
+    function ubahTipe() {
+      const tetap = tipeSelect.value === 'tetap';
+      grupTetap.style.display = tetap ? 'flex' : 'none';
+      grupFleksibel.style.display = tetap ? 'none' : 'flex';
+      jamMulaiInput.required = tetap;
+      jamSelesaiInput.required = tetap;
+      durasiInput.required = !tetap;
+    }
+    tipeSelect.addEventListener('change', ubahTipe);
+    ubahTipe();
+
+    function resetForm() {
+      form.reset();
+      kategoriSelect.value = 'otomatis';
+      prioritasSelect.value = 'otomatis';
+      tanggalInput.value = filterTanggal || '';
+      ubahTipe();
+      updateHint();
+    }
+
     form.addEventListener('submit', function(e) {
       e.preventDefault();
 
-      const jamMulai = document.getElementById('jamMulai').value;
-      const jamSelesai = document.getElementById('jamSelesai').value;
-
-      if (jamSelesai <= jamMulai) {
-        alert('Jam selesai harus lebih besar dari jam mulai!');
-        return;
-      }
+      const tipe = tipeSelect.value;
+      const nama = namaInput.value;
+      const kategoriAuto = kategoriSelect.value === 'otomatis';
+      const kategoriFinal = kategoriTerpilih(nama);
+      const prioritasAuto = prioritasSelect.value === 'otomatis';
+      const prioritasFinal = prioritasAuto ? tebakPrioritas(nama, kategoriFinal) : prioritasSelect.value;
 
       const dataForm = {
-        nama: document.getElementById('namaKegiatan').value,
-        tanggal: document.getElementById('tanggal').value,
-        jamMulai: jamMulai,
-        jamSelesai: jamSelesai
+        nama: nama,
+        tanggal: tanggalInput.value,
+        kategori: kategoriFinal,
+        kategoriAuto: kategoriAuto,
+        prioritas: prioritasFinal,
+        prioritasAuto: prioritasAuto,
+        tipe: tipe
       };
 
+      if (tipe === 'tetap') {
+        if (jamSelesaiInput.value <= jamMulaiInput.value) {
+          alert('Jam selesai harus lebih besar dari jam mulai!');
+          return;
+        }
+        dataForm.jamMulai = jamMulaiInput.value;
+        dataForm.jamSelesai = jamSelesaiInput.value;
+      } else {
+        const durasi = parseInt(durasiInput.value, 10);
+        if (!durasi || durasi < 5) {
+          alert('Durasi minimal 5 menit.');
+          return;
+        }
+        dataForm.durasi = durasi;
+      }
+
       if (sedangEdit === null) {
+        dataForm.dibuat = Date.now();
         kegiatanRef.add(dataForm);
       } else {
-        kegiatanRef.doc(sedangEdit).update(dataForm);
+        const lama = daftarKegiatan.find(k => k.id === sedangEdit);
+        dataForm.dibuat = (lama && lama.dibuat) || Date.now();
+        kegiatanRef.doc(sedangEdit).set(dataForm);
         sedangEdit = null;
         tombolSubmit.textContent = 'Tambah Kegiatan';
       }
 
-      form.reset();
+      resetForm();
+      if (filterTanggal !== null) setFilter(dataForm.tanggal);
     });
 
     function hapusKegiatan(id) {
-      const konfirmasi = confirm('Yakin mau hapus kegiatan ini?');
-      if (!konfirmasi) return;
-
+      if (!confirm('Yakin mau hapus kegiatan ini?')) return;
       kegiatanRef.doc(id).delete();
+      tutupSheet();
     }
 
     function editKegiatan(id) {
       const keg = daftarKegiatan.find(k => k.id === id);
       if (!keg) return;
+      tutupSheet();
 
-      document.getElementById('namaKegiatan').value = keg.nama;
-      document.getElementById('tanggal').value = keg.tanggal;
-      document.getElementById('jamMulai').value = keg.jamMulai;
-      document.getElementById('jamSelesai').value = keg.jamSelesai;
+      namaInput.value = keg.nama;
+      tanggalInput.value = keg.tanggal;
+      kategoriSelect.value = keg.kategoriAuto ? 'otomatis' : (keg.kategori || 'lainnya');
+      prioritasSelect.value = (keg.prioritasAuto || !keg.prioritas) ? 'otomatis' : keg.prioritas;
+      tipeSelect.value = keg.tipe || 'tetap';
+      ubahTipe();
+      updateHint();
+
+      if (tipeSelect.value === 'tetap') {
+        jamMulaiInput.value = keg.jamMulai;
+        jamSelesaiInput.value = keg.jamSelesai;
+      } else {
+        durasiInput.value = keg.durasi;
+      }
 
       sedangEdit = id;
       tombolSubmit.textContent = 'Simpan Perubahan';
-
       window.scrollTo(0, 0);
     }
 
-    function tampilkanJadwal() {
-      const terurut = [...daftarKegiatan].sort((a, b) => {
-        if (a.tanggal !== b.tanggal) return a.tanggal.localeCompare(b.tanggal);
-        return a.jamMulai.localeCompare(b.jamMulai);
+    // ===== 4. OTAK PENJADWALAN OTOMATIS =====
+    function keMenit(jam) {
+      const [j, m] = jam.split(':').map(Number);
+      return j * 60 + m;
+    }
+    function keJam(menit) {
+      return String(Math.floor(menit / 60)).padStart(2, '0') + ':' + String(menit % 60).padStart(2, '0');
+    }
+    function esc(teks) {
+      const el = document.createElement('div');
+      el.textContent = teks;
+      return el.innerHTML;
+    }
+    function kategoriKegiatan(keg) {
+      return KATEGORI[keg.kategori] ? keg.kategori : tebakKategori(keg.nama);
+    }
+    function prioritasKegiatan(keg) {
+      return BOBOT_PRIORITAS[keg.prioritas] !== undefined ? keg.prioritas : tebakPrioritas(keg.nama, kategoriKegiatan(keg));
+    }
+
+    function susunJadwal(daftar) {
+      const perTanggal = {};
+      daftar.forEach(k => { (perTanggal[k.tanggal] = perTanggal[k.tanggal] || []).push(k); });
+      const hasil = [];
+
+      Object.keys(perTanggal).sort().forEach(tgl => {
+        const items = perTanggal[tgl];
+
+        const tetap = items
+          .filter(k => (k.tipe || 'tetap') === 'tetap')
+          .map(k => ({ ...k, mulai: k.jamMulai, selesai: k.jamSelesai }))
+          .sort((a, b) => keMenit(a.mulai) - keMenit(b.mulai));
+
+        const fleksibel = items
+          .filter(k => k.tipe === 'fleksibel')
+          .sort((a, b) => {
+            const sel = BOBOT_PRIORITAS[prioritasKegiatan(a)] - BOBOT_PRIORITAS[prioritasKegiatan(b)];
+            return sel !== 0 ? sel : (a.dibuat || 0) - (b.dibuat || 0);
+          });
+
+        const slotKosong = [];
+        const batasAkhir = keMenit(JAM_AKHIR_HARI);
+        let pointer = keMenit(JAM_AWAL_HARI);
+        tetap.forEach(k => {
+          const akhirSlot = Math.min(keMenit(k.mulai), batasAkhir);
+          if (akhirSlot > pointer) slotKosong.push({ mulai: pointer, selesai: akhirSlot });
+          pointer = Math.max(pointer, keMenit(k.selesai));
+        });
+        if (pointer < batasAkhir) slotKosong.push({ mulai: pointer, selesai: batasAkhir });
+
+        const terpasang = fleksibel.map(k => {
+          const slot = slotKosong.find(s => s.selesai - s.mulai >= k.durasi);
+          if (!slot) return { ...k, tidakMuat: true };
+          const mulai = slot.mulai;
+          slot.mulai += k.durasi;
+          return { ...k, mulai: keJam(mulai), selesai: keJam(mulai + k.durasi) };
+        });
+
+        const berjam = [...tetap, ...terpasang.filter(k => !k.tidakMuat)]
+          .sort((a, b) => keMenit(a.mulai) - keMenit(b.mulai));
+
+        let akhirTerjauh = -1;
+        berjam.forEach(k => {
+          k.bentrok = keMenit(k.mulai) < akhirTerjauh;
+          akhirTerjauh = Math.max(akhirTerjauh, keMenit(k.selesai));
+        });
+
+        hasil.push(...berjam, ...terpasang.filter(k => k.tidakMuat));
       });
+      return hasil;
+    }
+
+    // ===== 5. LEMBAR DETAIL (BOTTOM SHEET) =====
+    function bukaSheet(id) {
+      const keg = hasilTersusun.find(k => k.id === id);
+      if (!keg) return;
+      const kode = kategoriKegiatan(keg);
+      const jam = keg.tidakMuat ? 'Tidak muat di hari ini (' + keg.durasi + ' menit)' : keg.mulai + ' - ' + keg.selesai;
+
+      sheet.innerHTML =
+        '<h3>' + esc(keg.nama) + '</h3>' +
+        '<p>' + namaTanggal(keg.tanggal) + '</p>' +
+        '<p><b>' + jam + '</b></p>' +
+        '<p><span class="titik-kat" style="background:' + KATEGORI[kode].warna + '"></span>' +
+          KATEGORI[kode].nama + (keg.kategoriAuto ? ' (otomatis)' : '') + '</p>' +
+        '<p>Prioritas ' + NAMA_PRIORITAS[prioritasKegiatan(keg)] + (keg.prioritasAuto ? ' (otomatis)' : '') + '</p>' +
+        (keg.tipe === 'fleksibel' && !keg.tidakMuat ? '<p style="color:#2c7bb6">Jam diatur otomatis oleh sistem</p>' : '') +
+        (keg.bentrok ? '<p style="color:#e74c3c">⚠️ Bentrok dengan kegiatan lain</p>' : '') +
+        '<div class="tombol-aksi">' +
+          '<button class="btn-edit" onclick="editKegiatan(\'' + keg.id + '\')">Edit</button>' +
+          '<button class="btn-hapus" onclick="hapusKegiatan(\'' + keg.id + '\')">Hapus</button>' +
+          '<button class="btn-tutup" onclick="tutupSheet()">Tutup</button>' +
+        '</div>';
+      sheet.classList.add('tampil');
+      sheetLatar.classList.add('tampil');
+    }
+
+    function tutupSheet() {
+      sheet.classList.remove('tampil');
+      sheetLatar.classList.remove('tampil');
+    }
+    sheetLatar.addEventListener('click', tutupSheet);
+
+    // ===== 6. TAMPILAN =====
+    function buatJudul(tgl) {
+      const judul = document.createElement('h3');
+      judul.className = 'tanggal-judul';
+      judul.textContent = namaTanggal(tgl);
+      return judul;
+    }
+
+    function buatKartu(keg) {
+      const fleks = keg.tipe === 'fleksibel';
+      const kode = kategoriKegiatan(keg);
+      const div = document.createElement('div');
+      div.className = 'kegiatan' + (keg.bentrok ? ' bentrok' : '') + (keg.tidakMuat ? ' tidak-muat' : '');
+      div.style.borderLeftColor = KATEGORI[kode].warna;
+      div.innerHTML = `
+        <strong>${esc(keg.nama)}</strong><br>
+        ${keg.tidakMuat ? 'Tidak muat di hari ini (' + keg.durasi + ' menit). Coba pindah tanggal atau kurangi durasi.' : keg.mulai + ' - ' + keg.selesai}<br>
+        <span class="meta">${KATEGORI[kode].nama}${keg.kategoriAuto ? ' (otomatis)' : ''} | Prioritas ${NAMA_PRIORITAS[prioritasKegiatan(keg)]}${keg.prioritasAuto ? ' (otomatis)' : ''}</span>
+        ${fleks && !keg.tidakMuat ? '<br><span class="label-otomatis">Diatur otomatis, ' + keg.durasi + ' menit</span>' : ''}
+        ${keg.bentrok ? '<br>⚠️ Bentrok dengan kegiatan lain!' : ''}
+        <div class="tombol-aksi">
+          <button class="btn-edit" onclick="editKegiatan('${keg.id}')">Edit</button>
+          <button class="btn-hapus" onclick="hapusKegiatan('${keg.id}')">Hapus</button>
+        </div>`;
+      return div;
+    }
+
+    // Kegiatan yang tumpang tindih dibagi ke kolom berdampingan (k._kol, k._n)
+    function aturKolom(daftar) {
+      let kelompok = [], akhirKelompok = -1;
+      const tutup = () => {
+        const n = Math.max(...kelompok.map(k => k._kol)) + 1;
+        kelompok.forEach(k => { k._n = n; });
+        kelompok = [];
+      };
+      daftar.forEach(k => {
+        const mulai = keMenit(k.mulai);
+        if (kelompok.length && mulai >= akhirKelompok) { tutup(); akhirKelompok = -1; }
+        const terpakai = kelompok.filter(c => keMenit(c.selesai) > mulai).map(c => c._kol);
+        let kol = 0;
+        while (terpakai.includes(kol)) kol++;
+        k._kol = kol;
+        kelompok.push(k);
+        akhirKelompok = Math.max(akhirKelompok, keMenit(k.selesai));
+      });
+      if (kelompok.length) tutup();
+    }
+
+    // Gelapkan warna hex supaya teks di dalam blok terbaca jelas
+    function gelapkan(hex) {
+      const n = parseInt(hex.slice(1), 16);
+      const f = 0.55;
+      return 'rgb(' + Math.round(((n >> 16) & 255) * f) + ',' + Math.round(((n >> 8) & 255) * f) + ',' + Math.round((n & 255) * f) + ')';
+    }
+
+    function renderTimeline(daftar, tgl) {
+      const berjam = daftar.filter(k => !k.tidakMuat);
+      const tidakMuat = daftar.filter(k => k.tidakMuat);
+
+      if (berjam.length) {
+        let awal = keMenit(JAM_AWAL_HARI), akhir = keMenit(JAM_AKHIR_HARI);
+        berjam.forEach(k => {
+          awal = Math.min(awal, keMenit(k.mulai));
+          akhir = Math.max(akhir, keMenit(k.selesai));
+        });
+        awal = Math.floor(awal / 60) * 60;
+        akhir = Math.ceil(akhir / 60) * 60;
+        const y = (m) => (m - awal) * PX_PER_MENIT;
+
+        aturKolom(berjam);
+
+        const wrap = document.createElement('div');
+        wrap.className = 'timeline';
+        wrap.style.height = y(akhir) + 'px';
+
+        // Garis tiap jam (tebak) dan tiap setengah jam (putus-putus tipis)
+        for (let m = awal; m <= akhir; m += 30) {
+          const g = document.createElement('div');
+          g.className = 'garis' + (m % 60 ? ' setengah' : '');
+          g.style.top = y(m) + 'px';
+          g.innerHTML = '<span>' + keJam(m) + '</span>';
+          wrap.appendChild(g);
+        }
+
+        // Waktu kosong di dalam jam aktif (minimal 45 menit)
+        const tambahKosong = (dari, sampai) => {
+          if (sampai - dari < 45) return;
+          const jam = Math.floor((sampai - dari) / 60), mnt = (sampai - dari) % 60;
+          const d = document.createElement('div');
+          d.className = 'kosong';
+          d.style.top = (y(dari) + 2) + 'px';
+          d.style.height = ((sampai - dari) * PX_PER_MENIT - 4) + 'px';
+          d.textContent = ('Kosong ' + (jam ? jam + ' j ' : '') + (mnt ? mnt + ' m' : '')).trim();
+          wrap.appendChild(d);
+        };
+        const batas = keMenit(JAM_AKHIR_HARI);
+        let kursor = keMenit(JAM_AWAL_HARI);
+        berjam.forEach(k => {
+          tambahKosong(kursor, Math.min(keMenit(k.mulai), batas));
+          kursor = Math.max(kursor, keMenit(k.selesai));
+        });
+        tambahKosong(kursor, batas);
+
+        // Blok kegiatan
+        berjam.forEach(keg => {
+          const kode = kategoriKegiatan(keg);
+          const warna = KATEGORI[kode].warna;
+          const pri = prioritasKegiatan(keg);
+          const mulai = keMenit(keg.mulai), selesai = keMenit(keg.selesai);
+          const tinggi = (selesai - mulai) * PX_PER_MENIT;
+          const tanda = (keg.tipe === 'fleksibel' ? ' ✦' : '') + (keg.bentrok ? ' ⚠️' : '');
+          const judul = IKON[kode] + ' ' + esc(keg.nama) + tanda;
+
+          const blok = document.createElement('div');
+          blok.className = 'blok' + (tinggi < 48 ? ' pendek' : '') +
+            (keg.tipe === 'fleksibel' ? ' fleks' : '') + (keg.bentrok ? ' tabrak' : '');
+          blok.style.top = (y(mulai) + 1) + 'px';
+          blok.style.height = (tinggi - 2) + 'px';
+          blok.style.left = 'calc(52px + (100% - 52px) * ' + keg._kol + ' / ' + keg._n + ')';
+          blok.style.width = 'calc((100% - 52px) / ' + keg._n + ' - 4px)';
+          blok.style.background = warna + '33';
+          blok.style.borderLeftColor = warna;
+          blok.style.setProperty('--tinta', gelapkan(warna));
+
+          let isi = '<i class="pri" title="Prioritas ' + NAMA_PRIORITAS[pri] + '" style="background:' + WARNA_PRI[pri] + '"></i>';
+          if (tinggi < 48) {
+            isi += '<span class="judul">' + judul + '</span><span class="jam">' + keg.mulai + '</span>';
+          } else {
+            isi += '<div class="judul">' + judul + '</div><div class="jam">' + keg.mulai + ' - ' + keg.selesai + '</div>';
+            if (tinggi >= 80) {
+              isi += '<div class="jam">' + KATEGORI[kode].nama + ' | Prioritas ' + NAMA_PRIORITAS[pri] + '</div>';
+            }
+          }
+          blok.innerHTML = isi;
+          blok.addEventListener('click', () => bukaSheet(keg.id));
+          wrap.appendChild(blok);
+        });
+
+        // Garis "sekarang" dengan label jam
+        if (tgl === hariIni()) {
+          const skrg = new Date();
+          const menitSkrg = skrg.getHours() * 60 + skrg.getMinutes();
+          if (menitSkrg >= awal && menitSkrg <= akhir) {
+            const g = document.createElement('div');
+            g.className = 'sekarang';
+            g.style.top = y(menitSkrg) + 'px';
+            g.innerHTML = '<span>' + keJam(menitSkrg) + '</span>';
+            wrap.appendChild(g);
+          }
+        }
+        hasilDiv.appendChild(wrap);
+      }
+
+      tidakMuat.forEach(keg => hasilDiv.appendChild(buatKartu(keg)));
+    }
+
+    function tampilkanJadwal() {
+      renderStrip();
+      if (!dataSiap) return;
 
       hasilDiv.innerHTML = '';
 
-      if (terurut.length === 0) {
-        hasilDiv.innerHTML = '<p>Belum ada kegiatan.</p>';
+      if (daftarKegiatan.length === 0) {
+        hasilDiv.innerHTML = '<p>Belum ada kegiatan. Tambahkan lewat form di atas.</p>';
         return;
       }
 
-      terurut.forEach((keg, index) => {
-        let bentrok = false;
-        if (index > 0) {
-          const sebelumnya = terurut[index - 1];
-          if (sebelumnya.tanggal === keg.tanggal && keg.jamMulai < sebelumnya.jamSelesai) {
-            bentrok = true;
-          }
-        }
+      hasilTersusun = susunJadwal(daftarKegiatan);
+      let daftar = filterTanggal ? hasilTersusun.filter(k => k.tanggal === filterTanggal) : hasilTersusun;
 
-        const div = document.createElement('div');
-        div.className = 'kegiatan' + (bentrok ? ' bentrok' : '');
-        div.innerHTML = `
-          <strong>${keg.nama}</strong><br>
-          ${keg.tanggal} | ${keg.jamMulai} - ${keg.jamSelesai}
-          ${bentrok ? '<br>⚠️ Bentrok dengan kegiatan sebelumnya!' : ''}
-          <div class="tombol-aksi">
-            <button class="btn-edit" onclick="editKegiatan('${keg.id}')">Edit</button>
-            <button class="btn-hapus" onclick="hapusKegiatan('${keg.id}')">Hapus</button>
-          </div>
-        `;
-        hasilDiv.appendChild(div);
+      if (daftar.length === 0) {
+        hasilDiv.innerHTML =
+          '<p>Belum ada kegiatan di ' + namaTanggal(filterTanggal) + '.</p>' +
+          '<p class="info-jendela">Ada ' + daftarKegiatan.length + ' kegiatan di tanggal lain. Titik abu-abu di bawah angka tanggal menandai hari yang berisi kegiatan.</p>';
+        return;
+      }
+
+      if (tampilan === 'timeline' && filterTanggal) {
+        hasilDiv.appendChild(buatJudul(filterTanggal));
+        renderTimeline(daftar, filterTanggal);
+        return;
+      }
+
+      if (tampilan === 'timeline' && !filterTanggal) {
+        hasilDiv.innerHTML = '<p class="info-jendela">Timeline hanya untuk satu tanggal. Pilih tanggal di atas, atau lihat semua kegiatan dalam daftar di bawah.</p>';
+      }
+
+      let tanggalTerakhir = null;
+      daftar.forEach(keg => {
+        if (keg.tanggal !== tanggalTerakhir) {
+          hasilDiv.appendChild(buatJudul(keg.tanggal));
+          tanggalTerakhir = keg.tanggal;
+        }
+        hasilDiv.appendChild(buatKartu(keg));
       });
     }
+
+    setTampilan('timeline');
+    setFilter(hariIni());
+    setInterval(tampilkanJadwal, 60000); // perbarui garis "sekarang"
   </script>
 
 </body>
