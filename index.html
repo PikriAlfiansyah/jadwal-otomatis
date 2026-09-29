@@ -9,7 +9,12 @@
   <style>
     :root {
       --bg: #0b0f1a; --card: rgba(255,255,255,.06); --line: rgba(255,255,255,.10);
-      --teks: #e8ecf5; --redup: #8b94a8; --aksen: #7c5cff; --aksen2: #00d4ff; --bahaya: #ff5d73;
+      --teks: #e8ecf5; --redup: #9aa2b6; --aksen: #7c5cff; --aksen2: #00d4ff; --bahaya: #ff5d73;
+      --sukses: #34d399;
+      --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-xl: 26px;
+      --bayang-1: 0 2px 10px rgba(0,0,0,.25);
+      --bayang-2: 0 16px 40px rgba(0,0,0,.35);
+      --bayang-3: 0 -10px 40px rgba(0,0,0,.55);
     }
     * { box-sizing: border-box; }
     body {
@@ -24,32 +29,66 @@
         radial-gradient(520px 420px at 100% 12%, rgba(0,212,255,.22), transparent 60%),
         var(--bg);
     }
+
+    /* ===== RESPONSIF ===== */
+    /* Tampilan tetap satu kolom di semua ukuran layar (HP, tablet, laptop).
+       Yang berubah cuma lebar kontainer dan sedikit jarak, supaya di layar
+       lebar tidak terlalu sempit tapi juga tidak melebar berlebihan karena
+       kontennya memang dirancang satu kolom (dipisah lewat tab, bukan
+       kolom berdampingan). */
+    @media (min-width: 600px) {
+      body { max-width: 640px; padding: 32px 24px 80px; }
+    }
+    @media (min-width: 900px) {
+      body { max-width: 680px; padding: 40px 24px 90px; }
+    }
+
     h1 {
-      font-size: 30px; font-weight: 800; letter-spacing: -.5px; margin: 0 0 18px;
+      font-size: clamp(26px, 3.4vw, 34px); font-weight: 800; letter-spacing: -.5px; margin: 0 0 20px; text-align: center;
       background: linear-gradient(90deg, #fff, #b7a8ff 50%, #7fe6ff);
       -webkit-background-clip: text; background-clip: text; color: transparent;
     }
-    h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .16em; color: var(--redup); margin: 28px 0 8px; }
+    h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .16em; color: var(--redup); margin: 0 0 10px; font-weight: 700; }
+    h2.judul-ke-2 { margin-top: 32px; }
 
-    /* Form */
+    /* ===== TAB NAVIGASI (2 halaman/menu) ===== */
+    .tab-nav {
+      display: flex; gap: 6px; margin-bottom: 22px; padding: 6px;
+      background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg);
+      box-shadow: var(--bayang-1);
+    }
+    .tab-btn {
+      flex: 1; padding: 12px 10px; font-size: 14px; font-weight: 700; border-radius: var(--r-md);
+      background: transparent; color: var(--redup); box-shadow: none;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: background .15s, color .15s;
+    }
+    .tab-btn:hover { color: var(--teks); filter: none; }
+    .tab-btn.aktif { background: linear-gradient(135deg, var(--aksen), var(--aksen2)); color: #fff; box-shadow: 0 6px 16px rgba(124,92,255,.4); }
+    .tab-btn.aktif:hover { color: #fff; }
+
+    .halaman { display: none; }
+    .halaman.aktif { display: block; }
+    /* ===== akhir tab navigasi ===== */
+
     form, .grup { display: flex; flex-direction: column; gap: 10px; }
     form {
-      margin-bottom: 20px; padding: 18px; border-radius: 22px;
+      margin-bottom: 24px; padding: 20px; border-radius: var(--r-lg);
       background: var(--card); border: 1px solid var(--line);
       backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      box-shadow: 0 20px 50px rgba(0,0,0,.35);
+      box-shadow: var(--bayang-2);
     }
     label { font-size: 12px; color: var(--redup); font-weight: 600; letter-spacing: .04em; }
     input, select {
       font: inherit; font-size: 15px; padding: 11px 13px; color: var(--teks);
-      background: rgba(255,255,255,.07); border: 1px solid var(--line); border-radius: 12px;
+      background: rgba(255,255,255,.07); border: 1px solid var(--line); border-radius: var(--r-sm);
       outline: none; color-scheme: dark; transition: border-color .15s, box-shadow .15s;
     }
     input:focus, select:focus { border-color: var(--aksen); box-shadow: 0 0 0 3px rgba(124,92,255,.28); }
     select option { background: #151a2b; }
     button {
       font: inherit; font-size: 15px; font-weight: 700; padding: 12px; color: #fff; border: 0;
-      border-radius: 12px; cursor: pointer;
+      border-radius: var(--r-sm); cursor: pointer;
       background: linear-gradient(135deg, var(--aksen), #4f8bff 60%, var(--aksen2));
       box-shadow: 0 8px 22px rgba(124,92,255,.35);
       transition: transform .15s, filter .15s;
@@ -58,194 +97,245 @@
     button:active { transform: scale(.97); }
     .info-jendela { font-size: 12px; color: var(--redup); margin: 0; line-height: 1.5; }
 
-    /* Pengingat + toast */
     .kotak-pengingat {
-      background: var(--card); border: 1px solid var(--line); border-radius: 18px;
-      padding: 14px; display: flex; flex-direction: column; gap: 8px;
+      background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg);
+      padding: 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--bayang-1);
     }
     .kotak-pengingat .baris { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .kotak-pengingat select { flex: 1; min-width: 150px; }
     .toast-area { position: fixed; top: 10px; left: 0; right: 0; max-width: 500px; margin: 0 auto; padding: 0 12px; z-index: 20; pointer-events: none; }
     .toast {
-      pointer-events: auto; padding: 13px 15px; border-radius: 14px; margin-bottom: 8px; font-size: 14px;
+      pointer-events: auto; padding: 13px 15px; border-radius: var(--r-md); margin-bottom: 8px; font-size: 14px;
       background: rgba(20,26,43,.92); border: 1px solid var(--line); color: #fff;
-      backdrop-filter: blur(14px); box-shadow: 0 10px 30px rgba(0,0,0,.5);
+      backdrop-filter: blur(14px); box-shadow: var(--bayang-2);
     }
 
-    /* Kepala kalender + strip minggu */
     .kepala { display: flex; align-items: center; justify-content: space-between; }
-    .kepala b { font-size: 17px; text-transform: capitalize; }
+    .kepala b { font-size: 17px; text-transform: capitalize; font-weight: 700; }
     .btn-panah {
       width: 38px; height: 38px; padding: 0; border-radius: 50%; font-size: 20px;
       background: var(--card); border: 1px solid var(--line); color: var(--teks); box-shadow: none;
     }
+    .btn-panah:hover { background: rgba(255,255,255,.10); filter: none; }
     .strip {
-      display: flex; gap: 4px; margin: 12px 0; padding: 8px 6px;
-      background: var(--card); border: 1px solid var(--line); border-radius: 20px;
+      display: flex; gap: 4px; margin: 14px 0 18px; padding: 10px 8px;
+      background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--bayang-1);
     }
     .hari {
-      flex: 1; padding: 6px 0; border-radius: 14px; background: none; box-shadow: none; color: var(--teks);
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      flex: 1; padding: 6px 0; border-radius: var(--r-md); background: none; box-shadow: none; color: var(--teks);
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
     }
-    .hari small { font-size: 10px; color: var(--redup); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
-    .hari b { width: 34px; height: 34px; line-height: 34px; border-radius: 50%; font-size: 14px; text-align: center; }
+    .hari small { font-size: 10px; color: var(--redup); text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
+    .hari b { width: 34px; height: 34px; line-height: 34px; border-radius: 50%; font-size: 14px; font-weight: 600; text-align: center; }
     .hari.ini b { box-shadow: inset 0 0 0 1.5px var(--aksen2); color: var(--aksen2); }
     .hari.pilih b { background: linear-gradient(135deg, var(--aksen), var(--aksen2)); color: #fff; box-shadow: 0 6px 16px rgba(124,92,255,.5); }
     .hari i { width: 5px; height: 5px; border-radius: 50%; }
     .hari i.titik { background: var(--aksen2); box-shadow: 0 0 6px var(--aksen2); }
-    .baris-chip { display: flex; gap: 6px; margin-bottom: 12px; }
+    .baris-chip { display: flex; gap: 6px; margin-bottom: 14px; }
     .baris-chip .sp { flex: 1; }
     .chip {
       padding: 7px 15px; font-size: 13px; font-weight: 600; border-radius: 999px;
       background: var(--card); border: 1px solid var(--line); color: var(--redup); box-shadow: none;
+      transition: border-color .15s, color .15s, background .15s;
     }
+    .chip:hover { border-color: rgba(255,255,255,.22); color: var(--teks); filter: none; }
     .chip.aktif { background: rgba(124,92,255,.22); border-color: var(--aksen); color: #fff; }
+    .chip.aktif:hover { border-color: var(--aksen); color: #fff; }
 
-    .legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--redup); margin-bottom: 6px; }
-    .legenda span::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; background: var(--warna); box-shadow: 0 0 8px var(--warna); }
-    .tanggal-judul { margin: 18px 0 10px; font-size: 15px; font-weight: 700; }
+    .legenda {
+      display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 12px; color: var(--redup);
+      margin-bottom: 16px; padding: 10px 14px; background: var(--card); border: 1px solid var(--line);
+      border-radius: var(--r-md);
+    }
+    .legenda span::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; background: var(--warna); box-shadow: 0 0 8px var(--warna); vertical-align: middle; }
+    .tanggal-judul { margin: 20px 0 10px; font-size: 15px; font-weight: 700; }
 
-    /* Kartu (tampilan daftar) */
+    .centang {
+      flex: none; width: 22px; height: 22px; border-radius: 50%; cursor: pointer;
+      border: 1.5px solid var(--redup); background: transparent; color: transparent;
+      display: flex; align-items: center; justify-content: center; font-size: 13px;
+      box-shadow: none; padding: 0; transition: all .15s;
+    }
+    .centang:hover { border-color: var(--sukses); filter: none; }
+    .centang.terisi { background: var(--sukses); border-color: var(--sukses); color: #06281c; }
+    .centang.lewat-belum { border-color: var(--bahaya); color: var(--bahaya); }
+    .centang.lewat-belum::after { content: "!"; font-weight: 800; }
+
     .kegiatan {
-      padding: 12px 14px; margin-bottom: 10px; border-radius: 16px; line-height: 1.5;
+      padding: 14px 16px; margin-bottom: 10px; border-radius: var(--r-md); line-height: 1.5;
       background: var(--card); border: 1px solid var(--line); border-left: 4px solid #7f8c8d;
+      display: flex; gap: 12px; align-items: flex-start; box-shadow: var(--bayang-1);
     }
     .kegiatan.bentrok { background: rgba(255,93,115,.12); }
     .kegiatan.tidak-muat { background: rgba(255,184,0,.10); }
-    .meta { font-size: 12px; color: var(--redup); }
-    .label-otomatis { font-size: 12px; color: var(--aksen2); }
-    .tombol-aksi { margin-top: 10px; display: flex; gap: 8px; }
-    .tombol-aksi button { padding: 6px 14px; font-size: 13px; box-shadow: none; }
+    .kegiatan.lewat { opacity: .55; }
+    .isi-kartu { flex: 1; min-width: 0; }
+    .judul-kartu { display: block; font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+    .meta { display: inline-block; font-size: 12px; color: var(--redup); margin-top: 2px; }
+    .label-otomatis { display: inline-block; font-size: 12px; color: var(--aksen2); margin-top: 2px; }
+    .tombol-aksi { margin-top: 12px; display: flex; gap: 8px; }
+    .tombol-aksi button { padding: 6px 14px; font-size: 13px; box-shadow: none; border-radius: var(--r-sm); }
     .btn-hapus { background: rgba(255,93,115,.9); }
     .btn-edit { background: rgba(79,139,255,.9); }
 
-    /* Timeline */
-    .timeline { position: relative; margin: 14px 0 18px; }
+    .timeline { position: relative; margin: 16px 0 20px; }
     .garis { position: absolute; left: 48px; right: 0; border-top: 1px solid rgba(255,255,255,.08); }
     .garis.setengah { border-top: 1px dashed rgba(255,255,255,.04); }
     .garis span { position: absolute; left: -48px; width: 40px; text-align: right; top: -8px; font-size: 11px; font-weight: 600; color: var(--redup); }
     .garis.setengah span { display: none; }
     .kosong {
-      position: absolute; left: 52px; right: 0; border: 1px dashed rgba(255,255,255,.14); border-radius: 12px;
-      color: #5d667a; font-size: 11px; display: flex; align-items: center; justify-content: center; z-index: 0;
+      position: absolute; left: 52px; right: 0; border: 1px dashed rgba(255,255,255,.14); border-radius: var(--r-md);
+      color: #6b7385; font-size: 11px; display: flex; align-items: center; justify-content: center; z-index: 0;
     }
+
+    /* ===== BLOK TIMELINE ===== */
     .blok {
       --tinta: #f4f6fb !important;
-      position: absolute; overflow: hidden; padding: 6px 9px; border-radius: 12px; border-left: 4px solid;
+      position: absolute; padding: 6px 9px; border-radius: var(--r-sm); border-left: 4px solid;
       font-size: 12px; line-height: 1.35; cursor: pointer; z-index: 1;
       box-shadow: 0 4px 14px rgba(0,0,0,.35); backdrop-filter: blur(6px);
       transition: transform .15s, box-shadow .15s;
+      min-height: 24px;
     }
-    .blok:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(0,0,0,.5); }
+    .blok:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(0,0,0,.5); z-index: 2; }
     .blok:active { transform: scale(.98); }
-    .blok .judul { font-weight: 700; font-size: 13px; color: var(--tinta); padding-right: 12px; }
-    .blok .jam { font-size: 11px; color: var(--tinta); opacity: .75; }
-    .blok .pri { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
-    .blok.fleks { background-image: repeating-linear-gradient(135deg, rgba(255,255,255,.08) 0 6px, transparent 6px 12px) !important; }
+    .blok .judul {
+      font-weight: 700; font-size: 13px; color: var(--tinta);
+      padding-right: 40px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      display: block;
+    }
+    .blok .jam {
+      font-size: 11px; color: var(--tinta); opacity: .78;
+      padding-right: 40px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      display: block;
+    }
+    .blok .pri { position: absolute; top: 8px; right: 30px; width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 8px currentColor; z-index: 2; }
+    .blok .centang { position: absolute; top: 4px; right: 4px; width: 19px; height: 19px; font-size: 11px; background: rgba(11,15,26,.7); z-index: 3; }
     .blok.tabrak { outline: 2px solid var(--bahaya); outline-offset: -2px; }
-    .blok.pendek { display: flex; align-items: center; gap: 8px; white-space: nowrap; padding-top: 0; padding-bottom: 0; }
+    .blok.pendek {
+      display: flex; align-items: center; gap: 6px;
+      padding-top: 0; padding-bottom: 0; padding-right: 40px;
+    }
+    .blok.pendek .judul { flex: 1; min-width: 0; padding-right: 0; }
+    .blok.pendek .jam { flex: none; padding-right: 0; max-width: 46px; }
+    .blok.lewat { opacity: .5; }
+    /* ===== akhir blok timeline ===== */
+
     .sekarang { position: absolute; left: 48px; right: 0; border-top: 2px solid var(--bahaya); z-index: 3; box-shadow: 0 0 12px rgba(255,93,115,.7); }
     .sekarang::before { content: ""; position: absolute; left: -5px; top: -6px; width: 10px; height: 10px; border-radius: 50%; background: var(--bahaya); }
     .sekarang span { position: absolute; left: -48px; top: -9px; background: var(--bahaya); color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 8px; }
 
-    /* Lembar detail (bottom sheet) */
     .sheet-latar { display: none; position: fixed; inset: 0; background: rgba(5,8,16,.6); backdrop-filter: blur(4px); z-index: 10; }
     .sheet {
       display: none; position: fixed; left: 0; right: 0; bottom: 0; max-width: 520px; margin: 0 auto;
-      background: #141a2b; border: 1px solid var(--line); border-bottom: 0; border-radius: 26px 26px 0 0;
-      padding: 22px 20px 26px; z-index: 11; box-shadow: 0 -10px 40px rgba(0,0,0,.6);
+      background: #141a2b; border: 1px solid var(--line); border-bottom: 0; border-radius: var(--r-xl) var(--r-xl) 0 0;
+      padding: 22px 20px 26px; z-index: 11; box-shadow: var(--bayang-3);
     }
     .sheet.tampil, .sheet-latar.tampil { display: block; }
+    .sheet .kepala-sheet { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     .sheet h3 { margin: 0 0 6px; font-size: 19px; }
-    .sheet p { margin: 5px 0; font-size: 14px; color: #aab3c5; }
+    .sheet p { margin: 6px 0; font-size: 14px; color: #aab3c5; line-height: 1.5; }
     .sheet p b { color: #fff; font-size: 16px; }
     .sheet .titik-kat { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
-    .sheet .tombol-aksi { margin-top: 16px; }
-    .sheet .tombol-aksi button { padding: 10px 18px; font-size: 14px; }
+    .sheet .tombol-aksi { margin-top: 18px; }
+    .sheet .tombol-aksi button { padding: 10px 18px; font-size: 14px; border-radius: var(--r-sm); }
+    .sheet .centang { width: 28px; height: 28px; font-size: 15px; }
     .btn-tutup { background: rgba(255,255,255,.10); box-shadow: none; }
+
+    @media (min-width: 900px) {
+      .sheet { max-width: 560px; border-radius: var(--r-xl); bottom: 32px; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
+    }
   </style>
 </head>
 <body>
 
   <h1>Jadwal Harianku</h1>
 
-  <form id="formKegiatan">
-    <input type="text" id="namaKegiatan" placeholder="Nama kegiatan" required>
-    <input type="date" id="tanggal" required>
+  <div class="tab-nav">
+    <button type="button" class="tab-btn" id="btnHalTambah" onclick="gantiHalaman('tambah')">➕ Tambah Kegiatan</button>
+    <button type="button" class="tab-btn aktif" id="btnHalKalender" onclick="gantiHalaman('kalender')">📅 Kalender</button>
+  </div>
 
-    <label for="kategori">Kategori</label>
-    <select id="kategori"></select>
-    <p class="info-jendela" id="hintKategori"></p>
+  <!-- ===== HALAMAN 1: TAMBAH KEGIATAN ===== -->
+  <div class="halaman" id="halamanTambah">
+    <form id="formKegiatan">
+      <input type="text" id="namaKegiatan" placeholder="Nama kegiatan" required>
+      <input type="date" id="tanggal" required>
 
-    <label for="prioritas">Prioritas</label>
-    <select id="prioritas">
-      <option value="otomatis" selected>Otomatis (tebak dari nama & kategori)</option>
-      <option value="tinggi">Tinggi</option>
-      <option value="sedang">Sedang</option>
-      <option value="rendah">Rendah</option>
-    </select>
-    <p class="info-jendela" id="hintPrioritas"></p>
+      <label for="kategori">Kategori</label>
+      <select id="kategori"></select>
+      <p class="info-jendela" id="hintKategori"></p>
 
-    <label for="tipe">Jenis kegiatan</label>
-    <select id="tipe">
-      <option value="tetap">Jam tetap (aku tentukan jamnya)</option>
-      <option value="fleksibel">Fleksibel (sistem yang cari jamnya)</option>
-    </select>
-
-    <div class="grup" id="grupTetap">
-      <label for="jamMulai">Jam mulai</label>
-      <input type="time" id="jamMulai">
-      <label for="jamSelesai">Jam selesai</label>
-      <input type="time" id="jamSelesai">
-    </div>
-
-    <div class="grup" id="grupFleksibel">
-      <label for="durasi">Durasi (menit)</label>
-      <input type="number" id="durasi" min="5" step="5" placeholder="Contoh: 90">
-      <p class="info-jendela" id="infoJendela"></p>
-    </div>
-
-    <button type="submit" id="tombolSubmit">Tambah Kegiatan</button>
-  </form>
-
-  <!-- Pengaturan pengingat -->
-  <div class="kotak-pengingat">
-    <div class="baris">
-      <label for="pengingat">🔔 Pengingat</label>
-      <select id="pengingat">
-        <option value="mati">Mati</option>
-        <option value="5">5 menit sebelum mulai</option>
-        <option value="10">10 menit sebelum mulai</option>
-        <option value="15">15 menit sebelum mulai</option>
-        <option value="30">30 menit sebelum mulai</option>
-        <option value="60">1 jam sebelum mulai</option>
+      <label for="prioritas">Prioritas</label>
+      <select id="prioritas">
+        <option value="otomatis" selected>Otomatis (tebak dari nama & kategori)</option>
+        <option value="tinggi">Tinggi</option>
+        <option value="sedang">Sedang</option>
+        <option value="rendah">Rendah</option>
       </select>
+      <p class="info-jendela" id="hintPrioritas"></p>
+
+      <label for="tipe">Jenis kegiatan</label>
+      <select id="tipe">
+        <option value="tetap">Jam tetap (aku tentukan jamnya)</option>
+        <option value="fleksibel">Fleksibel (sistem yang cari jamnya)</option>
+      </select>
+
+      <div class="grup" id="grupTetap">
+        <label for="jamMulai">Jam mulai</label>
+        <input type="time" id="jamMulai">
+        <label for="jamSelesai">Jam selesai</label>
+        <input type="time" id="jamSelesai">
+      </div>
+
+      <div class="grup" id="grupFleksibel">
+        <label for="durasi">Durasi (menit)</label>
+        <input type="number" id="durasi" min="5" step="5" placeholder="Contoh: 90">
+        <p class="info-jendela" id="infoJendela"></p>
+      </div>
+
+      <button type="submit" id="tombolSubmit">Tambah Kegiatan</button>
+    </form>
+
+    <div class="kotak-pengingat">
+      <div class="baris">
+        <label for="pengingat">🔔 Pengingat</label>
+        <select id="pengingat">
+          <option value="mati">Mati</option>
+          <option value="5">5 menit sebelum mulai</option>
+          <option value="10">10 menit sebelum mulai</option>
+          <option value="15">15 menit sebelum mulai</option>
+          <option value="30">30 menit sebelum mulai</option>
+          <option value="60">1 jam sebelum mulai</option>
+        </select>
+      </div>
+      <div class="baris">
+        <button type="button" class="chip" id="btnIzin">Aktifkan notifikasi</button>
+      </div>
+      <p class="info-jendela" id="statusNotif"></p>
     </div>
-    <div class="baris">
-      <button type="button" class="chip" id="btnIzin">Aktifkan notifikasi</button>
+  </div>
+
+  <!-- ===== HALAMAN 2: KALENDER ===== -->
+  <div class="halaman aktif" id="halamanKalender">
+    <div class="kepala">
+      <button type="button" class="btn-panah" id="btnPrev" title="Minggu sebelumnya">‹</button>
+      <b id="judulBulan"></b>
+      <button type="button" class="btn-panah" id="btnNext" title="Minggu berikutnya">›</button>
     </div>
-    <p class="info-jendela" id="statusNotif"></p>
+    <div class="strip" id="strip"></div>
+
+    <div class="baris-chip">
+      <button type="button" class="chip" id="btnHariIni">Hari ini</button>
+      <button type="button" class="chip" id="btnSemua">Semua</button>
+      <span class="sp"></span>
+      <button type="button" class="chip" id="btnTimeline">Timeline</button>
+      <button type="button" class="chip" id="btnDaftar">Daftar</button>
+    </div>
+
+    <div class="legenda" id="legenda"></div>
+    <div id="hasilJadwal"><p>Memuat data...</p></div>
   </div>
-
-  <h2>Kalender</h2>
-
-  <div class="kepala">
-    <button type="button" class="btn-panah" id="btnPrev" title="Minggu sebelumnya">‹</button>
-    <b id="judulBulan"></b>
-    <button type="button" class="btn-panah" id="btnNext" title="Minggu berikutnya">›</button>
-  </div>
-  <div class="strip" id="strip"></div>
-
-  <div class="baris-chip">
-    <button type="button" class="chip" id="btnHariIni">Hari ini</button>
-    <button type="button" class="chip" id="btnSemua">Semua</button>
-    <span class="sp"></span>
-    <button type="button" class="chip" id="btnTimeline">Timeline</button>
-    <button type="button" class="chip" id="btnDaftar">Daftar</button>
-  </div>
-
-  <div class="legenda" id="legenda"></div>
-  <div id="hasilJadwal"><p>Memuat data...</p></div>
 
   <div class="sheet-latar" id="sheetLatar"></div>
   <div class="sheet" id="sheet"></div>
@@ -256,10 +346,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
   <script>
-    // ===== PENGATURAN =====
     const JAM_AWAL_HARI = "06:00";
     const JAM_AKHIR_HARI = "22:00";
-    const PX_PER_MENIT = 1.2; // 1.2 = 72px per jam. Naikkan biar lebih lega.
+    const PX_PER_MENIT = 1.2;
 
     const KATEGORI = {
       kerja:    { nama: 'Kerja',    warna: '#8e44ad' },
@@ -288,7 +377,6 @@
     const IKON = { kerja: '💼', belajar: '📚', olahraga: '🏃', pribadi: '🏠', lainnya: '📌' };
     const WARNA_PRI = { tinggi: '#ea4335', sedang: '#f9ab00', rendah: '#34a853' };
 
-    // ===== TEBAK OTOMATIS =====
     function adaKataKunci(nama, daftar) {
       const kata = nama.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
       return kata.some(k => daftar.some(kw => k.startsWith(kw)));
@@ -305,7 +393,6 @@
       return PRIORITAS_KATEGORI[kategori] || 'sedang';
     }
 
-    // ===== FUNGSI TANGGAL =====
     function formatISO(dt) {
       return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
     }
@@ -323,7 +410,6 @@
       return new Date(y, m - 1, d).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
     }
 
-    // ===== 1. FIREBASE =====
     const firebaseConfig = {
       apiKey: "AIzaSyDrnuoOBpdtFtp1Vy52pp28Web-NK-wA7M",
       authDomain: "jadwal-otomatis-954b7.firebaseapp.com",
@@ -336,7 +422,6 @@
     const db = firebase.firestore();
     const kegiatanRef = db.collection('kegiatan');
 
-    // ===== ELEMEN HALAMAN =====
     const $ = (id) => document.getElementById(id);
     const form = $('formKegiatan'), hasilDiv = $('hasilJadwal'), tombolSubmit = $('tombolSubmit');
     const namaInput = $('namaKegiatan'), tanggalInput = $('tanggal'), tipeSelect = $('tipe');
@@ -349,6 +434,17 @@
     const btnTimeline = $('btnTimeline'), btnDaftar = $('btnDaftar');
     const sheet = $('sheet'), sheetLatar = $('sheetLatar');
     const pengingatSelect = $('pengingat'), btnIzin = $('btnIzin'), statusNotif = $('statusNotif');
+
+    // ===== NAVIGASI 2 HALAMAN/MENU =====
+    function gantiHalaman(nama) {
+      const tambah = nama === 'tambah';
+      $('halamanTambah').classList.toggle('aktif', tambah);
+      $('halamanKalender').classList.toggle('aktif', !tambah);
+      $('btnHalTambah').classList.toggle('aktif', tambah);
+      $('btnHalKalender').classList.toggle('aktif', !tambah);
+      window.scrollTo(0, 0);
+    }
+    // ===== akhir navigasi =====
 
     $('infoJendela').textContent =
       'Sistem mencari waktu kosong antara ' + JAM_AWAL_HARI + ' dan ' + JAM_AKHIR_HARI +
@@ -390,13 +486,13 @@
     updateHint();
 
     let daftarKegiatan = [];
-    let hasilTersusun = [];          // hasil susunJadwal terakhir (dipakai detail & pengingat)
+    let hasilTersusun = [];
     let sedangEdit = null;
     let dataSiap = false;
-    let filterTanggal = hariIni();   // null = semua tanggal
+    let filterTanggal = hariIni();
     let tampilan = 'timeline';
+    let sedangDitulisKunci = new Set(); // id yang lagi proses dikunci ke Firestore, biar gak double-tulis
 
-    // ===== FILTER, STRIP MINGGU, TAMPILAN =====
     function setFilter(tgl) {
       filterTanggal = tgl;
       btnSemua.classList.toggle('aktif', tgl === null);
@@ -415,7 +511,7 @@
     function renderStrip() {
       const acuan = filterTanggal || hariIni();
       const [y, m, d] = acuan.split('-').map(Number);
-      const urutanHari = (new Date(y, m - 1, d).getDay() + 6) % 7; // Senin = 0
+      const urutanHari = (new Date(y, m - 1, d).getDay() + 6) % 7;
       const senin = geserTanggal(acuan, -urutanHari);
 
       judulBulan.textContent = namaBulan(acuan);
@@ -439,7 +535,6 @@
     btnTimeline.addEventListener('click', () => setTampilan('timeline'));
     btnDaftar.addEventListener('click', () => setTampilan('daftar'));
 
-    // ===== PENGINGAT =====
     function bacaSimpan(k, def) {
       try { const v = localStorage.getItem(k); return v === null ? def : v; } catch (e) { return def; }
     }
@@ -454,16 +549,14 @@
       cekPengingat();
     });
 
-    // Catatan pengingat yang sudah dikirim, supaya tidak muncul berulang
     let sudahNotif = new Set();
     try { sudahNotif = new Set(JSON.parse(bacaSimpan('sudahNotif', '[]'))); } catch (e) {}
     function tandaiNotif(kunci) {
       sudahNotif.add(kunci);
-      sudahNotif = new Set([...sudahNotif].filter(k => k.startsWith(hariIni()))); // buang catatan hari lain
+      sudahNotif = new Set([...sudahNotif].filter(k => k.startsWith(hariIni())));
       tulisSimpan('sudahNotif', JSON.stringify([...sudahNotif]));
     }
 
-    // Service worker (file sw.js) dibutuhkan supaya notifikasi jalan di HP Android
     let swReg = null;
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').then(r => { swReg = r; }).catch(() => {});
@@ -512,7 +605,6 @@
     async function kirimNotif(judul, isi, tag) {
       const bisaSistem = ('Notification' in window) && Notification.permission === 'granted';
 
-      // Pesan di dalam halaman: tampil kalau halaman sedang dibuka, atau kalau notifikasi sistem tidak tersedia
       if (document.visibilityState === 'visible' || !bisaSistem) {
         tampilToast('🔔 ' + judul + ' — ' + isi);
       }
@@ -534,7 +626,7 @@
       const tglHariIni = hariIni();
 
       hasilTersusun.forEach(keg => {
-        if (keg.tanggal !== tglHariIni || keg.tidakMuat) return;
+        if (keg.tanggal !== tglHariIni || keg.tidakMuat || keg.tuntas) return;
         const selisih = keMenit(keg.mulai) - menitSkrg;
 
         if (selisih > 0 && selisih <= sebelum) {
@@ -558,7 +650,6 @@
       if (document.visibilityState === 'visible') cekPengingat();
     });
 
-    // ===== 2. LOGIN ANONIM + DENGERIN DATA =====
     firebase.auth().signInAnonymously().catch((error) => {
       console.error('Gagal login anonim:', error);
       hasilDiv.innerHTML = '<p>Gagal terhubung ke server. Coba refresh halaman.</p>';
@@ -575,7 +666,6 @@
       }
     });
 
-    // ===== 3. FORM =====
     function ubahTipe() {
       const tetap = tipeSelect.value === 'tetap';
       grupTetap.style.display = tetap ? 'flex' : 'none';
@@ -634,17 +724,23 @@
 
       if (sedangEdit === null) {
         dataForm.dibuat = Date.now();
+        dataForm.tuntas = false;
         kegiatanRef.add(dataForm);
       } else {
         const lama = daftarKegiatan.find(k => k.id === sedangEdit);
         dataForm.dibuat = (lama && lama.dibuat) || Date.now();
-        kegiatanRef.doc(sedangEdit).set(dataForm);
+        dataForm.tuntas = (lama && lama.tuntas) || false;
+        // Hapus kunci jam fleksibel lama, supaya posisi dihitung ulang dari awal setelah diedit
+        dataForm.terjadwalMulai = firebase.firestore.FieldValue.delete();
+        dataForm.terjadwalSelesai = firebase.firestore.FieldValue.delete();
+        kegiatanRef.doc(sedangEdit).update(dataForm);
         sedangEdit = null;
         tombolSubmit.textContent = 'Tambah Kegiatan';
       }
 
       resetForm();
       if (filterTanggal !== null) setFilter(dataForm.tanggal);
+      gantiHalaman('kalender'); // langsung pindah ke halaman Kalender setelah simpan
     });
 
     function hapusKegiatan(id) {
@@ -675,10 +771,16 @@
 
       sedangEdit = id;
       tombolSubmit.textContent = 'Simpan Perubahan';
-      window.scrollTo(0, 0);
+      gantiHalaman('tambah'); // pindah ke halaman form supaya user bisa langsung edit
     }
 
-    // ===== 4. OTAK PENJADWALAN OTOMATIS =====
+    function toggleSelesai(id, event) {
+      if (event) event.stopPropagation();
+      const keg = daftarKegiatan.find(k => k.id === id);
+      if (!keg) return;
+      kegiatanRef.doc(id).update({ tuntas: !keg.tuntas });
+    }
+
     function keMenit(jam) {
       const [j, m] = jam.split(':').map(Number);
       return j * 60 + m;
@@ -687,8 +789,7 @@
       return String(Math.floor(menit / 60)).padStart(2, '0') + ':' + String(menit % 60).padStart(2, '0');
     }
 
-    // Jam sekarang (dibulatkan ke atas) untuk titik awal jadwal fleksibel hari ini
-    const PEMBULATAN_MENIT = 5; // isi 1 kalau mau menit persis
+    const PEMBULATAN_MENIT = 5;
     function menitSekarangBulat() {
       const skrg = new Date();
       const menit = skrg.getHours() * 60 + skrg.getMinutes();
@@ -707,30 +808,50 @@
       return BOBOT_PRIORITAS[keg.prioritas] !== undefined ? keg.prioritas : tebakPrioritas(keg.nama, kategoriKegiatan(keg));
     }
 
+    function kegiatanLewat(keg) {
+      if (keg.tidakMuat) return false;
+      const tglIni = hariIni();
+      if (keg.tanggal < tglIni) return true;
+      if (keg.tanggal > tglIni) return false;
+      const skrg = new Date();
+      return keMenit(keg.selesai) <= (skrg.getHours() * 60 + skrg.getMinutes());
+    }
+
     function susunJadwal(daftar) {
       const perTanggal = {};
       daftar.forEach(k => { (perTanggal[k.tanggal] = perTanggal[k.tanggal] || []).push(k); });
       const hasil = [];
+      const menitSkrgSkr = new Date().getHours() * 60 + new Date().getMinutes();
 
       Object.keys(perTanggal).sort().forEach(tgl => {
         const items = perTanggal[tgl];
+        const iniHariIni = tgl === hariIni();
+
+        // Kegiatan fleksibel yang sudah pernah dikunci (tersimpan permanen di
+        // Firestore lewat field terjadwalMulai/terjadwalSelesai) diperlakukan
+        // seperti kegiatan jam tetap, tidak pernah dihitung ulang lagi. Ini
+        // yang mencegah blok "lari" mengejar garis waktu berjalan.
+        const fleksibelTerkunci = items
+          .filter(k => k.tipe === 'fleksibel' && k.terjadwalMulai)
+          .map(k => ({ ...k, mulai: k.terjadwalMulai, selesai: k.terjadwalSelesai }));
+
+        const fleksibelBelum = items.filter(k => k.tipe === 'fleksibel' && !k.terjadwalMulai);
 
         const tetap = items
           .filter(k => (k.tipe || 'tetap') === 'tetap')
           .map(k => ({ ...k, mulai: k.jamMulai, selesai: k.jamSelesai }))
+          .concat(fleksibelTerkunci)
           .sort((a, b) => keMenit(a.mulai) - keMenit(b.mulai));
 
-        const fleksibel = items
-          .filter(k => k.tipe === 'fleksibel')
-          .sort((a, b) => {
-            const sel = BOBOT_PRIORITAS[prioritasKegiatan(a)] - BOBOT_PRIORITAS[prioritasKegiatan(b)];
-            return sel !== 0 ? sel : (a.dibuat || 0) - (b.dibuat || 0);
-          });
+        const fleksibel = fleksibelBelum.sort((a, b) => {
+          const sel = BOBOT_PRIORITAS[prioritasKegiatan(a)] - BOBOT_PRIORITAS[prioritasKegiatan(b)];
+          return sel !== 0 ? sel : (a.dibuat || 0) - (b.dibuat || 0);
+        });
 
         const slotKosong = [];
         const batasAkhir = keMenit(JAM_AKHIR_HARI);
         let pointer = keMenit(JAM_AWAL_HARI);
-        if (tgl === hariIni()) pointer = Math.max(pointer, menitSekarangBulat());
+        if (iniHariIni) pointer = Math.max(pointer, menitSekarangBulat());
         tetap.forEach(k => {
           const akhirSlot = Math.min(keMenit(k.mulai), batasAkhir);
           if (akhirSlot > pointer) slotKosong.push({ mulai: pointer, selesai: akhirSlot });
@@ -755,27 +876,49 @@
           akhirTerjauh = Math.max(akhirTerjauh, keMenit(k.selesai));
         });
 
+        // Begitu jam mulai kegiatan fleksibel sudah tiba, kunci permanen ke
+        // Firestore supaya tidak dihitung ulang lagi di refresh/device manapun
+        if (iniHariIni) {
+          berjam.forEach(k => {
+            const sudahMulai = keMenit(k.mulai) <= menitSkrgSkr;
+            if (k.tipe === 'fleksibel' && sudahMulai && !k.terjadwalMulai && !sedangDitulisKunci.has(k.id)) {
+              sedangDitulisKunci.add(k.id);
+              kegiatanRef.doc(k.id).update({ terjadwalMulai: k.mulai, terjadwalSelesai: k.selesai })
+                .catch(() => {})
+                .finally(() => sedangDitulisKunci.delete(k.id));
+            }
+          });
+        }
+
         hasil.push(...berjam, ...terpasang.filter(k => k.tidakMuat));
       });
+
+      hasil.forEach(k => { k.lewat = kegiatanLewat(k); });
       return hasil;
     }
 
-    // ===== 5. LEMBAR DETAIL (BOTTOM SHEET) =====
     function bukaSheet(id) {
       const keg = hasilTersusun.find(k => k.id === id);
       if (!keg) return;
       const kode = kategoriKegiatan(keg);
       const jam = keg.tidakMuat ? 'Tidak muat di hari ini (' + keg.durasi + ' menit)' : keg.mulai + ' - ' + keg.selesai;
+      const kelasCentang = 'centang' + (keg.tuntas ? ' terisi' : (keg.lewat ? ' lewat-belum' : ''));
 
       sheet.innerHTML =
-        '<h3>' + esc(keg.nama) + '</h3>' +
-        '<p>' + namaTanggal(keg.tanggal) + '</p>' +
+        '<div class="kepala-sheet"><div>' +
+          '<h3>' + esc(keg.nama) + '</h3>' +
+          '<p>' + namaTanggal(keg.tanggal) + '</p>' +
+        '</div>' +
+        '<button class="' + kelasCentang + '" title="Tandai selesai" onclick="toggleSelesai(\'' + keg.id + '\', event)">' + (keg.tuntas ? '✓' : '') + '</button>' +
+        '</div>' +
         '<p><b>' + jam + '</b></p>' +
         '<p><span class="titik-kat" style="background:' + KATEGORI[kode].warna + '"></span>' +
           KATEGORI[kode].nama + (keg.kategoriAuto ? ' (otomatis)' : '') + '</p>' +
         '<p>Prioritas ' + NAMA_PRIORITAS[prioritasKegiatan(keg)] + (keg.prioritasAuto ? ' (otomatis)' : '') + '</p>' +
-        (keg.tipe === 'fleksibel' && !keg.tidakMuat ? '<p style="color:#00d4ff">Jam diatur otomatis oleh sistem</p>' : '') +
+        (keg.tipe === 'fleksibel' && !keg.tidakMuat ? '<p style="color:#00d4ff">Jam diatur otomatis oleh sistem' + (keg.terjadwalMulai ? ' (sudah terkunci)' : '') + '</p>' : '') +
         (keg.bentrok ? '<p style="color:#ff5d73">⚠️ Bentrok dengan kegiatan lain</p>' : '') +
+        (keg.lewat && !keg.tuntas ? '<p style="color:#ff5d73">Jadwal ini sudah lewat dan belum ditandai selesai</p>' : '') +
+        (keg.tuntas ? '<p style="color:#34d399">✓ Sudah ditandai selesai</p>' : '') +
         '<div class="tombol-aksi">' +
           '<button class="btn-edit" onclick="editKegiatan(\'' + keg.id + '\')">Edit</button>' +
           '<button class="btn-hapus" onclick="hapusKegiatan(\'' + keg.id + '\')">Hapus</button>' +
@@ -791,7 +934,6 @@
     }
     sheetLatar.addEventListener('click', tutupSheet);
 
-    // ===== 6. TAMPILAN =====
     function buatJudul(tgl) {
       const judul = document.createElement('h3');
       judul.className = 'tanggal-judul';
@@ -802,23 +944,29 @@
     function buatKartu(keg) {
       const fleks = keg.tipe === 'fleksibel';
       const kode = kategoriKegiatan(keg);
+      const kelasCentang = 'centang' + (keg.tuntas ? ' terisi' : (keg.lewat ? ' lewat-belum' : ''));
+
       const div = document.createElement('div');
-      div.className = 'kegiatan' + (keg.bentrok ? ' bentrok' : '') + (keg.tidakMuat ? ' tidak-muat' : '');
+      div.className = 'kegiatan' +
+        (keg.bentrok ? ' bentrok' : '') + (keg.tidakMuat ? ' tidak-muat' : '') +
+        (keg.lewat ? ' lewat' : '') + (keg.tuntas ? ' selesai' : '');
       div.style.borderLeftColor = KATEGORI[kode].warna;
       div.innerHTML = `
-        <strong>${esc(keg.nama)}</strong><br>
-        ${keg.tidakMuat ? 'Tidak muat di hari ini (' + keg.durasi + ' menit). Coba pindah tanggal atau kurangi durasi.' : keg.mulai + ' - ' + keg.selesai}<br>
-        <span class="meta">${KATEGORI[kode].nama}${keg.kategoriAuto ? ' (otomatis)' : ''} | Prioritas ${NAMA_PRIORITAS[prioritasKegiatan(keg)]}${keg.prioritasAuto ? ' (otomatis)' : ''}</span>
-        ${fleks && !keg.tidakMuat ? '<br><span class="label-otomatis">Diatur otomatis, ' + keg.durasi + ' menit</span>' : ''}
-        ${keg.bentrok ? '<br>⚠️ Bentrok dengan kegiatan lain!' : ''}
-        <div class="tombol-aksi">
-          <button class="btn-edit" onclick="editKegiatan('${keg.id}')">Edit</button>
-          <button class="btn-hapus" onclick="hapusKegiatan('${keg.id}')">Hapus</button>
+        <button class="${kelasCentang}" title="Tandai selesai" onclick="toggleSelesai('${keg.id}', event)">${keg.tuntas ? '✓' : ''}</button>
+        <div class="isi-kartu">
+          <strong class="judul-kartu">${esc(keg.nama)}</strong><br>
+          ${keg.tidakMuat ? 'Tidak muat di hari ini (' + keg.durasi + ' menit). Coba pindah tanggal atau kurangi durasi.' : keg.mulai + ' - ' + keg.selesai}<br>
+          <span class="meta">${KATEGORI[kode].nama}${keg.kategoriAuto ? ' (otomatis)' : ''} | Prioritas ${NAMA_PRIORITAS[prioritasKegiatan(keg)]}${keg.prioritasAuto ? ' (otomatis)' : ''}</span>
+          ${fleks && !keg.tidakMuat ? '<br><span class="label-otomatis">Diatur otomatis, ' + keg.durasi + ' menit</span>' : ''}
+          ${keg.bentrok ? '<br>⚠️ Bentrok dengan kegiatan lain!' : ''}
+          <div class="tombol-aksi">
+            <button class="btn-edit" onclick="editKegiatan('${keg.id}')">Edit</button>
+            <button class="btn-hapus" onclick="hapusKegiatan('${keg.id}')">Hapus</button>
+          </div>
         </div>`;
       return div;
     }
 
-    // Kegiatan yang tumpang tindih dibagi ke kolom berdampingan (k._kol, k._n)
     function aturKolom(daftar) {
       let kelompok = [], akhirKelompok = -1;
       const tutup = () => {
@@ -837,13 +985,6 @@
         akhirKelompok = Math.max(akhirKelompok, keMenit(k.selesai));
       });
       if (kelompok.length) tutup();
-    }
-
-    // Gelapkan warna hex supaya teks di dalam blok terbaca jelas
-    function gelapkan(hex) {
-      const n = parseInt(hex.slice(1), 16);
-      const f = 0.55;
-      return 'rgb(' + Math.round(((n >> 16) & 255) * f) + ',' + Math.round(((n >> 8) & 255) * f) + ',' + Math.round((n & 255) * f) + ')';
     }
 
     function renderTimeline(daftar, tgl) {
@@ -866,7 +1007,6 @@
         wrap.className = 'timeline';
         wrap.style.height = y(akhir) + 'px';
 
-        // Garis tiap jam (tebal) dan tiap setengah jam (putus-putus tipis)
         for (let m = awal; m <= akhir; m += 30) {
           const g = document.createElement('div');
           g.className = 'garis' + (m % 60 ? ' setengah' : '');
@@ -875,7 +1015,6 @@
           wrap.appendChild(g);
         }
 
-        // Waktu kosong di dalam jam aktif (minimal 45 menit)
         const tambahKosong = (dari, sampai) => {
           if (sampai - dari < 45) return;
           const jam = Math.floor((sampai - dari) / 60), mnt = (sampai - dari) % 60;
@@ -894,7 +1033,6 @@
         });
         tambahKosong(kursor, batas);
 
-        // Blok kegiatan
         berjam.forEach(keg => {
           const kode = kategoriKegiatan(keg);
           const warna = KATEGORI[kode].warna;
@@ -903,33 +1041,32 @@
           const tinggi = (selesai - mulai) * PX_PER_MENIT;
           const tanda = (keg.tipe === 'fleksibel' ? ' ✦' : '') + (keg.bentrok ? ' ⚠️' : '');
           const judul = IKON[kode] + ' ' + esc(keg.nama) + tanda;
+          const kelasCentang = 'centang' + (keg.tuntas ? ' terisi' : (keg.lewat ? ' lewat-belum' : ''));
 
           const blok = document.createElement('div');
           blok.className = 'blok' + (tinggi < 48 ? ' pendek' : '') +
-            (keg.tipe === 'fleksibel' ? ' fleks' : '') + (keg.bentrok ? ' tabrak' : '');
+            (keg.bentrok ? ' tabrak' : '') + (keg.lewat ? ' lewat' : '');
           blok.style.top = (y(mulai) + 1) + 'px';
-          blok.style.height = (tinggi - 2) + 'px';
+          blok.style.height = Math.max(tinggi - 2, 24) + 'px';
           blok.style.left = 'calc(52px + (100% - 52px) * ' + keg._kol + ' / ' + keg._n + ')';
           blok.style.width = 'calc((100% - 52px) / ' + keg._n + ' - 4px)';
           blok.style.background = warna + '33';
           blok.style.borderLeftColor = warna;
-          blok.style.setProperty('--tinta', gelapkan(warna));
 
-          let isi = '<i class="pri" title="Prioritas ' + NAMA_PRIORITAS[pri] + '" style="background:' + WARNA_PRI[pri] + '"></i>';
+          const tombolCentang = '<button class="' + kelasCentang + '" title="Tandai selesai" onclick="toggleSelesai(\'' + keg.id + '\', event)">' + (keg.tuntas ? '✓' : '') + '</button>';
+
+          let isi = '<i class="pri" title="Prioritas ' + NAMA_PRIORITAS[pri] + '" style="background:' + WARNA_PRI[pri] + '"></i>' + tombolCentang;
           if (tinggi < 48) {
             isi += '<span class="judul">' + judul + '</span><span class="jam">' + keg.mulai + '</span>';
           } else {
-            isi += '<div class="judul">' + judul + '</div><div class="jam">' + keg.mulai + ' - ' + keg.selesai + '</div>';
-            if (tinggi >= 80) {
-              isi += '<div class="jam">' + KATEGORI[kode].nama + ' | Prioritas ' + NAMA_PRIORITAS[pri] + '</div>';
-            }
+            isi += '<div class="judul">' + judul + '</div>' +
+              '<div class="jam">' + keg.mulai + ' - ' + keg.selesai + ' · ' + KATEGORI[kode].nama + ' · ' + NAMA_PRIORITAS[pri] + '</div>';
           }
           blok.innerHTML = isi;
           blok.addEventListener('click', () => bukaSheet(keg.id));
           wrap.appendChild(blok);
         });
 
-        // Garis "sekarang" dengan label jam
         if (tgl === hariIni()) {
           const skrg = new Date();
           const menitSkrg = skrg.getHours() * 60 + skrg.getMinutes();
@@ -955,7 +1092,7 @@
       hasilTersusun = susunJadwal(daftarKegiatan);
 
       if (daftarKegiatan.length === 0) {
-        hasilDiv.innerHTML = '<p>Belum ada kegiatan. Tambahkan lewat form di atas.</p>';
+        hasilDiv.innerHTML = '<p>Belum ada kegiatan. Tambahkan lewat halaman "Tambah Kegiatan".</p>';
         return;
       }
 
@@ -990,7 +1127,7 @@
 
     setTampilan('timeline');
     setFilter(hariIni());
-    setInterval(tampilkanJadwal, 60000); // perbarui garis "sekarang"
+    setInterval(tampilkanJadwal, 60000);
   </script>
 
 </body>
