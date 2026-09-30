@@ -241,7 +241,90 @@
     .sheet .tombol-aksi button { padding: 10px 18px; font-size: 14px; border-radius: var(--r-sm); }
     .sheet .centang { width: 28px; height: 28px; font-size: 15px; }
     .btn-tutup { background: rgba(255,255,255,.10); box-shadow: none; }
+    /* Modal Konfirmasi Hapus */
+    .modal-hapus-latar {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(5,8,16,.65);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: 30;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
 
+    .modal-hapus-latar.tampil {
+      display: flex;
+    }
+
+    .modal-hapus {
+      width: 100%;
+      max-width: 380px;
+      background: #141a2b;
+      border: 1px solid var(--line);
+      border-radius: var(--r-xl);
+      padding: 24px 20px 20px;
+      box-shadow: var(--bayang-2);
+      text-align: center;
+    }
+
+    .modal-hapus-ikon {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(255,93,115,.12);
+      font-size: 24px;
+    }
+
+    .modal-hapus h3 {
+      margin: 0 0 8px;
+      font-size: 19px;
+    }
+
+    .modal-hapus p {
+      margin: 0;
+      color: var(--redup);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .modal-hapus-nama {
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--line);
+      border-radius: var(--r-sm);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .modal-hapus-aksi {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .modal-hapus-aksi button {
+      flex: 1;
+      padding: 10px 14px;
+      font-size: 14px;
+      box-shadow: none;
+    }
+
+    .btn-batal-hapus {
+      background: rgba(255,255,255,.10);
+    }
+
+    .btn-konfirmasi-hapus {
+      background: rgba(255,93,115,.9);
+    }
     @media (min-width: 900px) {
       .sheet { max-width: 560px; border-radius: var(--r-xl); bottom: 32px; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
     }
@@ -340,6 +423,47 @@
   <div class="sheet-latar" id="sheetLatar"></div>
   <div class="sheet" id="sheet"></div>
   <div class="toast-area" id="toastArea"></div>
+  <!-- Modal Konfirmasi Hapus -->
+<div class="modal-hapus-latar" id="modalHapusLatar">
+  <div class="modal-hapus">
+    <div class="modal-hapus-ikon">🗑️</div>
+
+    <h3>Hapus Kegiatan?</h3>
+
+    <p>
+      Apakah kamu yakin ingin menghapus kegiatan ini?
+    </p>
+
+    <div class="modal-hapus-nama" id="namaKegiatanHapus"></div>
+
+    <div class="modal-hapus-aksi">
+      <button type="button" class="btn-batal-hapus" onclick="tutupModalHapus()">
+        Batal
+      </button>
+
+      <button type="button" class="btn-konfirmasi-hapus" id="btnKonfirmasiHapus">
+        Hapus
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Popup Jadwal Berhasil -->
+<div class="modal-hapus-latar" id="popupJadwalLatar">
+  <div class="modal-hapus">
+    <div class="modal-hapus-ikon">↻</div>
+    <h3>Jadwal Berhasil Diubah</h3>
+    <p id="popupJadwalPesan">
+      Kegiatan berhasil dijadwalkan ulang.
+    </p>
+    <div class="modal-hapus-nama" id="popupJadwalJam"></div>
+    <div class="modal-hapus-aksi">
+      <button type="button" class="btn-konfirmasi-hapus" id="btnTutupPopupJadwal">
+        Oke
+      </button>
+    </div>
+  </div>
+</div>
 
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -433,7 +557,25 @@
     const btnHariIni = $('btnHariIni'), btnSemua = $('btnSemua');
     const btnTimeline = $('btnTimeline'), btnDaftar = $('btnDaftar');
     const sheet = $('sheet'), sheetLatar = $('sheetLatar');
+
+    let idKegiatanAkanDihapus = null;
+
+    const modalHapusLatar = $('modalHapusLatar');
+    const namaKegiatanHapus = $('namaKegiatanHapus');
+    const btnKonfirmasiHapus = $('btnKonfirmasiHapus');
+
     const pengingatSelect = $('pengingat'), btnIzin = $('btnIzin'), statusNotif = $('statusNotif');
+
+    const popupJadwalLatar = $('popupJadwalLatar');
+    const popupJadwalPesan = $('popupJadwalPesan');
+    const popupJadwalJam = $('popupJadwalJam');
+    const btnTutupPopupJadwal = $('btnTutupPopupJadwal');
+
+    function tutupPopupJadwal() {
+      popupJadwalLatar.classList.remove('tampil');
+    }
+
+btnTutupPopupJadwal.addEventListener('click', tutupPopupJadwal);
 
     // ===== NAVIGASI 2 HALAMAN/MENU =====
     function gantiHalaman(nama) {
@@ -743,12 +885,117 @@
       gantiHalaman('kalender'); // langsung pindah ke halaman Kalender setelah simpan
     });
 
-    function hapusKegiatan(id) {
-      if (!confirm('Yakin mau hapus kegiatan ini?')) return;
-      kegiatanRef.doc(id).delete();
-      tutupSheet();
+    async function jadwalkanUlang(id) {
+      const keg = daftarKegiatan.find(k => k.id === id);
+      if (!keg) return;
+
+      if (keg.tipe !== 'fleksibel') {
+        alert('Jadwalkan Ulang hanya bisa digunakan untuk kegiatan fleksibel.');
+        return;
+      }
+
+      const jadwalSekarang = hasilTersusun.find(k => k.id === id);
+
+      if (!jadwalSekarang || jadwalSekarang.tidakMuat) {
+        alert('Kegiatan ini belum memiliki jadwal yang bisa dijadwalkan ulang.');
+        return;
+      }
+
+      const durasi = Number(keg.durasi);
+
+      if (!durasi || durasi <= 0) {
+        alert('Durasi kegiatan tidak valid.');
+        return;
+      }
+
+      const tanggal = keg.tanggal;
+      const mulaiLama = keMenit(jadwalSekarang.mulai);
+
+      // Ambil jadwal kegiatan lain.
+      // Jadwal mereka TIDAK akan diubah.
+      const kegiatanLain = hasilTersusun
+        .filter(k => k.id !== id)
+        .filter(k => k.tanggal === tanggal)
+        .filter(k => !k.tidakMuat)
+        .filter(k => k.mulai && k.selesai)
+        .map(k => ({
+          mulai: keMenit(k.mulai),
+          selesai: keMenit(k.selesai)
+        }))
+        .sort((a, b) => a.mulai - b.mulai);
+
+      // Mulai mencari slot setelah posisi lama.
+      let calonMulai = mulaiLama + PEMBULATAN_MENIT;
+      let slotDitemukan = null;
+
+      for (const jadwal of kegiatanLain) {
+        if (jadwal.selesai <= calonMulai) {
+          continue;
+        }
+
+        if (jadwal.mulai > calonMulai) {
+          const durasiSlot = jadwal.mulai - calonMulai;
+
+          if (durasiSlot >= durasi) {
+            slotDitemukan = calonMulai;
+            break;
+          }
+        }
+
+        calonMulai = Math.max(calonMulai, jadwal.selesai);
+      }
+
+      if (slotDitemukan === null) {
+        if (calonMulai + durasi <= keMenit(JAM_AKHIR_HARI)) {
+          slotDitemukan = calonMulai;
+        }
+      }
+
+      if (slotDitemukan === null) {
+        alert('Tidak ada slot kosong berikutnya pada hari ini.');
+        return;
+      }
+
+      const mulaiBaru = keJam(slotDitemukan);
+      const selesaiBaru = keJam(slotDitemukan + durasi);
+
+      try {
+        // Hanya kegiatan yang dipilih yang diubah.
+        await kegiatanRef.doc(id).update({
+          terjadwalMulai: mulaiBaru,
+          terjadwalSelesai: selesaiBaru
+        });
+
+        // Jangan memanggil susunJadwal() secara manual di sini.
+        // Kegiatan lain tetap menggunakan jadwalnya masing-masing.
+
+        tutupSheet();
+
+             tutupSheet();
+
+        popupJadwalPesan.textContent =
+          'Kegiatan ' + keg.nama + ' berhasil dijadwalkan ulang.';
+
+        popupJadwalJam.textContent =
+          mulaiBaru + ' - ' + selesaiBaru;
+
+        popupJadwalLatar.classList.add('tampil');
+
+      } catch (error) {
+        console.error(error);
+        alert('Gagal menjadwalkan ulang kegiatan.');
+      }
     }
 
+    function hapusKegiatan(id) {
+      const keg = daftarKegiatan.find(k => k.id === id);
+      if (!keg) return;
+
+      idKegiatanAkanDihapus = id;
+      namaKegiatanHapus.textContent = keg.nama;
+      modalHapusLatar.classList.add('tampil');
+    }
+    
     function editKegiatan(id) {
       const keg = daftarKegiatan.find(k => k.id === id);
       if (!keg) return;
@@ -920,9 +1167,10 @@
         (keg.lewat && !keg.tuntas ? '<p style="color:#ff5d73">Jadwal ini sudah lewat dan belum ditandai selesai</p>' : '') +
         (keg.tuntas ? '<p style="color:#34d399">✓ Sudah ditandai selesai</p>' : '') +
         '<div class="tombol-aksi">' +
-          '<button class="btn-edit" onclick="editKegiatan(\'' + keg.id + '\')">Edit</button>' +
-          '<button class="btn-hapus" onclick="hapusKegiatan(\'' + keg.id + '\')">Hapus</button>' +
-          '<button class="btn-tutup" onclick="tutupSheet()">Tutup</button>' +
+           '<button class="btn-edit" onclick="editKegiatan(\'' + keg.id + '\')">Edit</button>' +
+           '<button class="btn-jadwal-ulang" onclick="jadwalkanUlang(\'' + keg.id + '\')">↻ Jadwalkan Ulang</button>' +
+           '<button class="btn-hapus" onclick="hapusKegiatan(\'' + keg.id + '\')">Hapus</button>' +
+           '<button class="btn-tutup" onclick="tutupSheet()">Tutup</button>' +
         '</div>';
       sheet.classList.add('tampil');
       sheetLatar.classList.add('tampil');
@@ -931,7 +1179,14 @@
     function tutupSheet() {
       sheet.classList.remove('tampil');
       sheetLatar.classList.remove('tampil');
+      modalHapusLatar.classList.remove('tampil');
     }
+
+    function tutupModalHapus() {
+      idKegiatanAkanDihapus = null;
+      modalHapusLatar.classList.remove('tampil');
+    }
+
     sheetLatar.addEventListener('click', tutupSheet);
 
     function buatJudul(tgl) {
@@ -1054,8 +1309,8 @@
           blok.style.borderLeftColor = warna;
 
           const tombolCentang = '<button class="' + kelasCentang + '" title="Tandai selesai" onclick="toggleSelesai(\'' + keg.id + '\', event)">' + (keg.tuntas ? '✓' : '') + '</button>';
-
-          let isi = '<i class="pri" title="Prioritas ' + NAMA_PRIORITAS[pri] + '" style="background:' + WARNA_PRI[pri] + '"></i>' + tombolCentang;
+          const warnaTitik = kode === 'lainnya' ? '#7f8c8d' : WARNA_PRI[pri];
+          let isi = '<i class="pri" title="Prioritas ' + NAMA_PRIORITAS[pri] + '" style="background:' + warnaTitik + '"></i>' + tombolCentang;
           if (tinggi < 48) {
             isi += '<span class="judul">' + judul + '</span><span class="jam">' + keg.mulai + '</span>';
           } else {
@@ -1128,6 +1383,17 @@
     setTampilan('timeline');
     setFilter(hariIni());
     setInterval(tampilkanJadwal, 60000);
+
+    btnKonfirmasiHapus.addEventListener('click', () => {
+  if (!idKegiatanAkanDihapus) return;
+
+  const id = idKegiatanAkanDihapus;
+
+  kegiatanRef.doc(id).delete();
+
+  tutupModalHapus();
+  tutupSheet();
+});
   </script>
 
 </body>
