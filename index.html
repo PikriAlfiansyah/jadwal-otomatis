@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jadwal Otomatis</title>
   <meta name="theme-color" content="#0b0f1a">
+  <meta name="description" content="Atur jadwal harian otomatis dengan timeline, prioritas, dan pengingat.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -328,6 +330,50 @@
     @media (min-width: 900px) {
       .sheet { max-width: 560px; border-radius: var(--r-xl); bottom: 32px; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
     }
+
+    /* ===== POLESAN TAMBAHAN ===== */
+
+/* Fokus keyboard yang jelas (aksesibilitas) */
+:focus-visible { outline: 2px solid var(--aksen2); outline-offset: 2px; }
+input:focus-visible, select:focus-visible { outline: none; }
+
+/* Hormati pengguna yang mematikan animasi di perangkatnya */
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+    }
+
+    /* Nyaman di layar sentuh */
+    button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    input::placeholder { color: #6b7385; }
+    label { margin-top: 4px; }
+
+    /* Sheet detail: bisa di-scroll di layar pendek, tombol tidak kepotong */
+    .sheet {
+      max-height: 85vh; overflow-y: auto;
+      padding-bottom: calc(26px + env(safe-area-inset-bottom, 0px));
+    }
+    .sheet .tombol-aksi { flex-wrap: wrap; }
+
+    /* Tombol varian */
+    .btn-jadwal-ulang { background: rgba(0,212,255,.85); color: #04202b; }
+    .btn-sukses { background: linear-gradient(135deg, #10b981, #34d399); color: #06281c; }
+    .ikon-sukses { background: rgba(52,211,153,.14); }
+
+    /* Animasi masuk yang halus */
+    .halaman.aktif { animation: masuk .25s ease; }
+    .sheet.tampil { animation: naik .25s ease; }
+    .modal-hapus-latar.tampil .modal-hapus { animation: pop .2s ease; }
+    @keyframes masuk { from { opacity: 0; transform: translateY(6px); } }
+    @keyframes naik  { from { transform: translateY(24px); opacity: 0; } }
+    @keyframes pop   { from { transform: scale(.96); opacity: 0; } }
+
+    /* Layar sangat kecil */
+    @media (max-width: 380px) {
+      .tab-btn { font-size: 13px; padding: 10px 6px; }
+      .hari b { width: 30px; height: 30px; line-height: 30px; }
+    }
+
   </style>
 </head>
 <body>
@@ -336,14 +382,18 @@
 
   <div class="tab-nav">
     <button type="button" class="tab-btn" id="btnHalTambah" onclick="gantiHalaman('tambah')">➕ Tambah Kegiatan</button>
-    <button type="button" class="tab-btn aktif" id="btnHalKalender" onclick="gantiHalaman('kalender')">📅 Kalender</button>
+    <button type="button" class="tab-btn aktif" id="btnHalKalender" aria-current="page" onclick="gantiHalaman('kalender')">📅 Kalender</button>
   </div>
 
+  <main>
   <!-- ===== HALAMAN 1: TAMBAH KEGIATAN ===== -->
   <div class="halaman" id="halamanTambah">
-    <form id="formKegiatan">
-      <input type="text" id="namaKegiatan" placeholder="Nama kegiatan" required>
-      <input type="date" id="tanggal" required>
+     <form id="formKegiatan">
+      <label for="namaKegiatan">Nama kegiatan</label>
+      <input type="text" id="namaKegiatan" placeholder="Contoh: Meeting dengan klien" required>
+
+      <label for="tanggal">Tanggal</label>
+      <input type="date" id="tanggal" required>s
 
       <label for="kategori">Kategori</label>
       <select id="kategori"></select>
@@ -402,9 +452,9 @@
   <!-- ===== HALAMAN 2: KALENDER ===== -->
   <div class="halaman aktif" id="halamanKalender">
     <div class="kepala">
-      <button type="button" class="btn-panah" id="btnPrev" title="Minggu sebelumnya">‹</button>
+      <button type="button" class="btn-panah" id="btnPrev" title="Minggu sebelumnya" aria-label="Minggu sebelumnya">‹</button>
       <b id="judulBulan"></b>
-      <button type="button" class="btn-panah" id="btnNext" title="Minggu berikutnya">›</button>
+      <button type="button" class="btn-panah" id="btnNext" title="Minggu berikutnya" aria-label="Minggu berikutnya">›</button>
     </div>
     <div class="strip" id="strip"></div>
 
@@ -419,16 +469,17 @@
     <div class="legenda" id="legenda"></div>
     <div id="hasilJadwal"><p>Memuat data...</p></div>
   </div>
+  </main>
 
   <div class="sheet-latar" id="sheetLatar"></div>
-  <div class="sheet" id="sheet"></div>
-  <div class="toast-area" id="toastArea"></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Detail kegiatan"></div>
+  <div class="toast-area" id="toastArea" role="status" aria-live="polite"></div>
   <!-- Modal Konfirmasi Hapus -->
 <div class="modal-hapus-latar" id="modalHapusLatar">
-  <div class="modal-hapus">
+  <div class="modal-hapus" role="alertdialog" aria-modal="true" aria-labelledby="judulHapus">
     <div class="modal-hapus-ikon">🗑️</div>
 
-    <h3>Hapus Kegiatan?</h3>
+    <h3 id="judulHapus">Hapus Kegiatan?</h3>
 
     <p>
       Apakah kamu yakin ingin menghapus kegiatan ini?
@@ -450,15 +501,15 @@
 
 <!-- Popup Jadwal Berhasil -->
 <div class="modal-hapus-latar" id="popupJadwalLatar">
-  <div class="modal-hapus">
-    <div class="modal-hapus-ikon">↻</div>
-    <h3>Jadwal Berhasil Diubah</h3>
+  <div class="modal-hapus" role="alertdialog" aria-modal="true" aria-labelledby="judulPopupJadwal">
+    <div class="modal-hapus-ikon ikon-sukses">✅</div>
+    <h3 id="judulPopupJadwal">Jadwal Berhasil Diubah</h3>
     <p id="popupJadwalPesan">
       Kegiatan berhasil dijadwalkan ulang.
     </p>
     <div class="modal-hapus-nama" id="popupJadwalJam"></div>
     <div class="modal-hapus-aksi">
-      <button type="button" class="btn-konfirmasi-hapus" id="btnTutupPopupJadwal">
+      <button type="button" class="btn-sukses" id="btnTutupPopupJadwal">
         Oke
       </button>
     </div>
@@ -578,12 +629,14 @@
 btnTutupPopupJadwal.addEventListener('click', tutupPopupJadwal);
 
     // ===== NAVIGASI 2 HALAMAN/MENU =====
-    function gantiHalaman(nama) {
+      function gantiHalaman(nama) {
       const tambah = nama === 'tambah';
       $('halamanTambah').classList.toggle('aktif', tambah);
       $('halamanKalender').classList.toggle('aktif', !tambah);
       $('btnHalTambah').classList.toggle('aktif', tambah);
       $('btnHalKalender').classList.toggle('aktif', !tambah);
+      $('btnHalTambah').setAttribute('aria-current', tambah ? 'page' : 'false');
+      $('btnHalKalender').setAttribute('aria-current', tambah ? 'false' : 'page');
       window.scrollTo(0, 0);
     }
     // ===== akhir navigasi =====
@@ -838,7 +891,7 @@ btnTutupPopupJadwal.addEventListener('click', tutupPopupJadwal);
       e.preventDefault();
 
       if (!kegiatanRef) {
-      alert('Masih menghubungkan ke server, coba lagi sebentar.');
+      tampilToast('⏳ Masih menghubungkan ke server, coba lagi sebentar.');
       return;
     }
 
@@ -861,7 +914,7 @@ btnTutupPopupJadwal.addEventListener('click', tutupPopupJadwal);
 
       if (tipe === 'tetap') {
         if (jamSelesaiInput.value <= jamMulaiInput.value) {
-          alert('Jam selesai harus lebih besar dari jam mulai!');
+          tampilToast('⚠️ Jam selesai harus lebih besar dari jam mulai.');
           return;
         }
         dataForm.jamMulai = jamMulaiInput.value;
@@ -869,7 +922,7 @@ btnTutupPopupJadwal.addEventListener('click', tutupPopupJadwal);
       } else {
         const durasi = parseInt(durasiInput.value, 10);
         if (!durasi || durasi < 5) {
-          alert('Durasi minimal 5 menit.');
+          tampilToast('⚠️ Durasi minimal 5 menit.');
           return;
         }
         dataForm.durasi = durasi;
@@ -901,21 +954,21 @@ btnTutupPopupJadwal.addEventListener('click', tutupPopupJadwal);
       if (!keg) return;
 
       if (keg.tipe !== 'fleksibel') {
-        alert('Jadwalkan Ulang hanya bisa digunakan untuk kegiatan fleksibel.');
+        tampilToast('⚠️ Jadwalkan Ulang hanya untuk kegiatan fleksibel.');
         return;
       }
 
       const jadwalSekarang = hasilTersusun.find(k => k.id === id);
 
       if (!jadwalSekarang || jadwalSekarang.tidakMuat) {
-        alert('Kegiatan ini belum memiliki jadwal yang bisa dijadwalkan ulang.');
+        tampilToast('⚠️ Kegiatan ini belum punya jadwal yang bisa dijadwal ulang.');
         return;
       }
 
       const durasi = Number(keg.durasi);
 
       if (!durasi || durasi <= 0) {
-        alert('Durasi kegiatan tidak valid.');
+        tampilToast('⚠️ Durasi kegiatan tidak valid.');
         return;
       }
 
@@ -963,7 +1016,7 @@ btnTutupPopupJadwal.addEventListener('click', tutupPopupJadwal);
       }
 
       if (slotDitemukan === null) {
-        alert('Tidak ada slot kosong berikutnya pada hari ini.');
+        tampilToast('⚠️ Tidak ada slot kosong berikutnya hari ini.');
         return;
       }
 
@@ -982,8 +1035,6 @@ btnTutupPopupJadwal.addEventListener('click', tutupPopupJadwal);
 
         tutupSheet();
 
-             tutupSheet();
-
         popupJadwalPesan.textContent =
           'Kegiatan ' + keg.nama + ' berhasil dijadwalkan ulang.';
 
@@ -994,7 +1045,7 @@ btnTutupPopupJadwal.addEventListener('click', tutupPopupJadwal);
 
       } catch (error) {
         console.error(error);
-        alert('Gagal menjadwalkan ulang kegiatan.');
+        tampilToast('❌ Gagal menjadwalkan ulang kegiatan.');
       }
     }
 
@@ -1329,7 +1380,14 @@ btnTutupPopupJadwal.addEventListener('click', tutupPopupJadwal);
               '<div class="jam">' + keg.mulai + ' - ' + keg.selesai + ' · ' + KATEGORI[kode].nama + ' · ' + NAMA_PRIORITAS[pri] + '</div>';
           }
           blok.innerHTML = isi;
+          blok.setAttribute('role', 'button');
+          blok.setAttribute('tabindex', '0');
+          blok.setAttribute('aria-label', keg.nama + ', ' + keg.mulai + ' sampai ' + keg.selesai);
           blok.addEventListener('click', () => bukaSheet(keg.id));
+          blok.addEventListener('keydown', (e) => {
+            if (e.target !== blok) return;
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); bukaSheet(keg.id); }
+          });
           wrap.appendChild(blok);
         });
 
@@ -1390,6 +1448,13 @@ btnTutupPopupJadwal.addEventListener('click', tutupPopupJadwal);
         hasilDiv.appendChild(buatKartu(keg));
       });
     }
+
+        document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        tutupSheet();
+        tutupModalHapus();
+        tutupPopupJadwal();
+      });
 
     setTampilan('timeline');
     setFilter(hariIni());
