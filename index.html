@@ -544,7 +544,7 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const kegiatanRef = db.collection('kegiatan');
+    let kegiatanRef = null; // diisi setelah user login
 
     const $ = (id) => document.getElementById(id);
     const form = $('formKegiatan'), hasilDiv = $('hasilJadwal'), tombolSubmit = $('tombolSubmit');
@@ -798,14 +798,20 @@ btnTutupPopupJadwal.addEventListener('click', tutupPopupJadwal);
     });
 
     firebase.auth().onAuthStateChanged((user) => {
-      if (user) {
-        kegiatanRef.onSnapshot((snapshot) => {
-          daftarKegiatan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          dataSiap = true;
-          tampilkanJadwal();
-          cekPengingat();
-        });
-      }
+      if (!user) return;
+
+      // Tiap user punya "laci" sendiri: users/{uid}/kegiatan
+      kegiatanRef = db.collection('users').doc(user.uid).collection('kegiatan');
+
+      kegiatanRef.onSnapshot((snapshot) => {
+        daftarKegiatan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        dataSiap = true;
+        tampilkanJadwal();
+        cekPengingat();
+      }, (error) => {
+        console.error('Gagal membaca data:', error);
+        hasilDiv.innerHTML = '<p>Gagal memuat data. Coba refresh halaman.</p>';
+      });
     });
 
     function ubahTipe() {
@@ -830,6 +836,11 @@ btnTutupPopupJadwal.addEventListener('click', tutupPopupJadwal);
 
     form.addEventListener('submit', function(e) {
       e.preventDefault();
+
+      if (!kegiatanRef) {
+      alert('Masih menghubungkan ke server, coba lagi sebentar.');
+      return;
+    }
 
       const tipe = tipeSelect.value;
       const nama = namaInput.value;
